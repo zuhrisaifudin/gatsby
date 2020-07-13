@@ -33,7 +33,9 @@ import {
   Interpreter,
   forwardTo,
   State,
+  StateMachine,
 } from "xstate"
+import { stringify, machineToJSON } from "xstate/lib/json"
 import { dataLayerMachine } from "../state-machines/data-layer"
 import { IDataLayerContext } from "../state-machines/data-layer/types"
 import { globalTracer } from "opentracing"
@@ -43,6 +45,7 @@ import { IWaitingContext } from "../state-machines/waiting/types"
 import { runMutationAndMarkDirty } from "../state-machines/shared-transition-configs"
 import { buildActions } from "../state-machines/actions"
 import { waitingMachine } from "../state-machines/waiting"
+import { emitter } from "../redux"
 
 const tracer = globalTracer()
 
@@ -316,13 +319,17 @@ module.exports = async (program: IProgram): Promise<void> => {
     },
   }
 
+  const machines = {
+    initializeDataLayer: dataLayerMachine,
+    runQueries: queryRunningMachine,
+    waitForMutations: waitingMachine,
+  }
+
   const machine = Machine(developConfig, {
     services: {
-      initializeDataLayer: dataLayerMachine,
-      initialize,
-      runQueries: queryRunningMachine,
-      waitForMutations: waitingMachine,
+      ...machines,
       startWebpackServer: startWebpackServer,
+      initialize,
     },
     actions: buildActions,
   }).withContext({ program, parentSpan: bootstrapSpan, app, firstRun: true })
@@ -336,6 +343,11 @@ module.exports = async (program: IProgram): Promise<void> => {
   const listeners = new WeakSet()
   let last: State<IBuildContext, AnyEventObject, any, any>
 
+  function emitState(state: State<any>): void {
+    console.log(JSON.stringify({ ...state, context: {} }))
+    emitter.emit(`BUILD_STATE_CHANGED`, { value: service.state.value })
+  }
+
   service.onTransition(state => {
     if (!last) {
       last = state
@@ -343,6 +355,7 @@ module.exports = async (program: IProgram): Promise<void> => {
       return
     }
     last = state
+    emitState(state)
     reporter.verbose(`Transition to ${JSON.stringify(state.value)}`)
     // eslint-disable-next-line no-unused-expressions
     service.children?.forEach(child => {
@@ -358,6 +371,8 @@ module.exports = async (program: IProgram): Promise<void> => {
           } else if (!substate.changed || sublast.matches(substate)) {
             return
           }
+          emitState(substate)
+
           sublast = substate
           reporter.verbose(
             `Transition to ${JSON.stringify(state.value)} > ${JSON.stringify(
@@ -370,4 +385,25 @@ module.exports = async (program: IProgram): Promise<void> => {
     })
   })
   service.start()
+  console.log(
+    JSON.stringify({
+      type: `service.register`,
+      machine: JSON.stringify(machineToJSON(machine)),
+      state: JSON.stringify(machine.initialState),
+      id: machine.id,
+    })
+  )
+
+  for (const id in machines) {
+    const service = machines[id]
+    console.log(
+      JSON.stringify({
+        type: `service.register`,
+        machine: JSON.stringify(machineToJSON(service)),
+        state: JSON.stringify(service.initialState),
+        id: service.id,
+        parent: machine.id,
+      })
+    )
+  }
 }
