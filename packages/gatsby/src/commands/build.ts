@@ -58,6 +58,10 @@ interface IBuildArgs extends IProgram {
 }
 
 module.exports = async function build(program: IBuildArgs): Promise<void> {
+  report.info(
+    `This is diagnostic build - it is not meant to produce successful build - please don't deploy it!!!`
+  )
+
   if (program.profile) {
     report.warn(
       `React Profiling is enabled. This can have a performance impact. See https://www.gatsbyjs.org/docs/profiling-site-performance-with-react-profiler/#performance-impact`
@@ -286,6 +290,10 @@ module.exports = async function build(program: IBuildArgs): Promise<void> {
 
   // Make sure we saved the latest state so we have all jobs cached
   await db.saveState()
+
+  report.info(
+    `This is diagnostic build - it is not meant to produce successful build - please don't deploy it!!!`
+  )
 
   report.info(`Done building in ${process.uptime()} sec`)
 

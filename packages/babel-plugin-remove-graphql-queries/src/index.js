@@ -188,8 +188,7 @@ export default function ({ types: t }) {
         const nestedJSXVistor = {
           JSXIdentifier(path2) {
             if (
-              (process.env.NODE_ENV === `test` ||
-                state.opts.stage === `build-html`) &&
+              process.env.NODE_ENV === `test` &&
               path2.isJSXIdentifier({ name: `StaticQuery` }) &&
               path2.referencesImport(`gatsby`) &&
               path2.parent.type !== `JSXClosingElement`
@@ -228,11 +227,7 @@ export default function ({ types: t }) {
 
         const nestedHookVisitor = {
           CallExpression(path2) {
-            if (
-              (process.env.NODE_ENV === `test` ||
-                state.opts.stage === `build-html`) &&
-              isUseStaticQuery(path2)
-            ) {
+            if (process.env.NODE_ENV === `test` && isUseStaticQuery(path2)) {
               const identifier = t.identifier(`staticQueryData`)
               const filename = state.file.opts.filename
               const staticQueryDir = state.opts.staticQueryDir || `static/d`

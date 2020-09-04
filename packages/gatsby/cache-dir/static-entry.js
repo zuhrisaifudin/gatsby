@@ -20,6 +20,7 @@ const apiRunner = require(`./api-runner-ssr`)
 const syncRequires = require(`$virtual/sync-requires`)
 const { version: gatsbyVersion } = require(`gatsby/package.json`)
 const { grabMatchParams } = require(`./find-path`)
+const { StaticQueryContext } = require(`gatsby`)
 
 const stats = JSON.parse(
   fs.readFileSync(`${process.cwd()}/public/webpack.stats.json`, `utf-8`)
@@ -103,6 +104,24 @@ const loadPageDataSync = pagePath => {
   try {
     const pageDataJson = fs.readFileSync(pageDataFile)
     return JSON.parse(pageDataJson)
+  } catch (error) {
+    // not an error if file is not found. There's just no page data
+    return null
+  }
+}
+
+const loadStaticQueryDataSync = queryHash => {
+  const staticQueryFile = join(
+    process.cwd(),
+    `public`,
+    `page-data`,
+    `sq`,
+    `d`,
+    `${queryHash}.json`
+  )
+  try {
+    const staticQueryJson = fs.readFileSync(staticQueryFile)
+    return JSON.parse(staticQueryJson)
   } catch (error) {
     // not an error if file is not found. There's just no page data
     return null
@@ -208,6 +227,13 @@ export default (pagePath, callback) => {
   const { componentChunkName, staticQueryHashes = [] } = pageData
 
   const staticQueryUrls = staticQueryHashes.map(getStaticQueryUrl)
+  const staticQueryData = staticQueryHashes.reduce(
+    (staticQueryData, queryHash) => {
+      staticQueryData[queryHash] = loadStaticQueryDataSync(queryHash)
+      return staticQueryData
+    },
+    {}
+  )
 
   class RouteHandler extends React.Component {
     render() {
@@ -249,7 +275,7 @@ export default (pagePath, callback) => {
     </ServerLocation>
   )
 
-  const bodyComponent = apiRunner(
+  const bodyComponentInner = apiRunner(
     `wrapRootElement`,
     { element: routerElement, pathname: pagePath },
     routerElement,
@@ -257,6 +283,12 @@ export default (pagePath, callback) => {
       return { element: result, pathname: pagePath }
     }
   ).pop()
+
+  const bodyComponent = (
+    <StaticQueryContext.Provider value={staticQueryData}>
+      {bodyComponentInner}
+    </StaticQueryContext.Provider>
+  )
 
   // Let the site or plugin render the page component.
   apiRunner(`replaceRenderer`, {

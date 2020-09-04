@@ -31,11 +31,34 @@ export const renderHTML = ({
             )
           })
         } catch (e) {
+          let componentChunkName = undefined
+          try {
+            componentChunkName = JSON.parse(
+              fs.readFileSync(
+                join(
+                  process.cwd(),
+                  `public`,
+                  `page-data`,
+                  path === `/` ? `index` : path,
+                  `page-data.json`
+                ),
+                `utf-8`
+              )
+            ).componentChunkName
+          } catch {
+            console.log(`[diagnostics] failed to read page-data for "${path}"`)
+          }
           // add some context to error so we can display more helpful message
           e.context = {
             path,
           }
-          reject(e)
+          console.log({
+            message: e.message,
+            path: path,
+            componentChunkName,
+          })
+          // this is to let gatsby running to discover all the pages / templates that might have sq issue
+          resolve()
         }
       })
   )

@@ -1,8 +1,11 @@
-import { uniqBy, List } from "lodash"
+import { uniqBy, List, isEqual } from "lodash"
 import path from "path"
 import { slash } from "gatsby-core-utils"
 import { IGatsbyState } from "../redux/types"
 import { Stats } from "webpack"
+import { outputFileSync, removeSync, appendFileSync } from "fs-extra"
+import v8 from "v8"
+import { deepMapModule as deepMap } from "./deep-map"
 
 interface ICompilation {
   modules: IModule[]
@@ -28,6 +31,14 @@ const entryNodes = [
   `.cache/_this_is_virtual_fs_path_/$virtual/async-requires.js`,
 ]
 
+let counter = 1
+const debugIndexFileName = path.join(
+  process.cwd(),
+  `public`,
+  `_sqea`,
+  `index.txt`
+)
+
 /* This function takes the current Redux state and a compilation
  * object from webpack and returns a map of unique templates
  * to static queries included in each (as hashes).
@@ -45,7 +56,8 @@ const entryNodes = [
  */
 export default function mapTemplatesToStaticQueryHashes(
   reduxState: IGatsbyState,
-  compilation: ICompilation
+  compilation: ICompilation,
+  forComparison?: any
 ): Map<string, Array<number>> {
   /* The `staticQueryComponents` slice of state is useful because
    * it is a pre extracted collection of all static queries found in a Gatsby site.
@@ -79,7 +91,7 @@ export default function mapTemplatesToStaticQueryHashes(
     // This is the body of the recursively called function
     function getDepsRec(m: IModule, seen: Set<string>): Set<string> {
       // Reasons in webpack are literally reasons of why this module was included in the tree
-      const hasReasons = m.hasReasons()
+      const hasReasons = m.reasons && m.reasons.length > 0 // m.hasReasons()
 
       // Is this node one of our known terminal nodes? See explanation above
       const isEntryNode = entryNodes.some(entryNode =>
@@ -105,7 +117,25 @@ export default function mapTemplatesToStaticQueryHashes(
         .filter(Boolean)
         .filter(r => !r.resource || !seen.has(r.resource))
 
-      const uniqDependents = uniqBy(nonTerminalDependents, d => d?.identifier())
+      const uniqDependents = uniqBy(nonTerminalDependents, d => {
+        const id = undefined
+        if (d?.identifier) {
+          const id = d?.identifier()
+          if (id) {
+            return id
+          }
+        } else {
+          // https://github.com/webpack/webpack/blob/bdeea6ec2f74ea66cd64158c1299a128a74a11c7/lib/NormalModule.js#L252-L257
+          // this is so running this function from serialized data works
+          return d.resource
+        }
+
+        console.log(
+          `we don't have identifier for module, this can cause problems (not guaranteed)`,
+          d
+        )
+        return id
+      })
 
       for (const uniqDependent of uniqDependents) {
         if (uniqDependent.resource) {
@@ -192,6 +222,57 @@ export default function mapTemplatesToStaticQueryHashes(
       staticQueryHashes.sort().map(String)
     )
   })
+
+  if (!forComparison) {
+    if (counter === 1) {
+      try {
+        removeSync(path.join(process.cwd(), `public`, `_sqea`))
+      } catch {
+        console.log(`[diagnostics] failed to clear _sqea`)
+      }
+    }
+
+    const debugFileName = path.join(`_sqea`, `args-${counter}.v8s`)
+    outputFileSync(
+      path.join(process.cwd(), `public`, debugFileName),
+      v8.serialize({
+        globalStaticQueryHashes,
+        mapOfStaticQueryComponentsToDependants,
+        mapOfTemplatesToStaticQueryHashes,
+        components,
+        staticQueryComponents,
+        webpackModules: deepMap(compilation.modules, v => {
+          // sanitize a bit to not crash on not serializable values
+          if (typeof v === `function`) {
+            return undefined
+          }
+          return v
+        }),
+      })
+    )
+    appendFileSync(debugIndexFileName, `${debugFileName}\n`)
+    counter++
+  } else {
+    const resultEqual = isEqual(
+      mapOfTemplatesToStaticQueryHashes,
+      forComparison.mapOfTemplatesToStaticQueryHashes
+    )
+    const globalStaticQueryHashesEqual = isEqual(
+      globalStaticQueryHashes,
+      forComparison.globalStaticQueryHashes
+    )
+
+    const mapOfStaticQueryComponentsToDependantsEqual = isEqual(
+      mapOfStaticQueryComponentsToDependants,
+      forComparison.mapOfStaticQueryComponentsToDependants
+    )
+
+    console.log({
+      resultEqual,
+      globalStaticQueryHashesEqual,
+      mapOfStaticQueryComponentsToDependantsEqual,
+    })
+  }
 
   return mapOfTemplatesToStaticQueryHashes
 }
