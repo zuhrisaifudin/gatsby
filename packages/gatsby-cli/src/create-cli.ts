@@ -470,64 +470,20 @@ export const createCli = (argv: Array<string>): yargs.Arguments => {
 
   trackCli(argv)
 
-  return cli
-    .command({
-      command: `new [rootPath] [starter]`,
-      describe: `Create new Gatsby project.`,
-      handler: handlerP(async ({ rootPath, starter }) => {
-        const starterStr = starter ? String(starter) : undefined
-        const rootPathStr = rootPath ? String(rootPath) : undefined
+  return (
+    cli
+      .command({
+        command: `new [rootPath] [starter]`,
+        describe: `Create new Gatsby project.`,
+        handler: handlerP(async ({ rootPath, starter }) => {
+          const starterStr = starter ? String(starter) : undefined
+          const rootPathStr = rootPath ? String(rootPath) : undefined
 
-        await initStarter(starterStr, rootPathStr)
-      }),
-    })
-    .command(`plugin`, `Useful commands relating to Gatsby plugins`, yargs =>
-      yargs
-        .command({
-          command: `docs`,
-          describe: `Helpful info about using and creating plugins`,
-          handler: handlerP(() =>
-            console.log(`
-Using a plugin:
-- What is a Plugin? (https://www.gatsbyjs.org/docs/what-is-a-plugin/)
-- Using a Plugin in Your Site (https://www.gatsbyjs.org/docs/using-a-plugin-in-your-site/)
-- What You Don't Need Plugins For (https://www.gatsbyjs.org/docs/what-you-dont-need-plugins-for/)
-- Loading Plugins from Your Local Plugins Folder (https://www.gatsbyjs.org/docs/loading-plugins-from-your-local-plugins-folder/)
-- Plugin Library (https://www.gatsbyjs.org/plugins/)
+          await initStarter(starterStr, rootPathStr)
+        }),
+      })
 
-Creating a plugin:
-- Naming a Plugin (https://www.gatsbyjs.org/docs/naming-a-plugin/)
-- Files Gatsby Looks for in a Plugin (https://www.gatsbyjs.org/docs/files-gatsby-looks-for-in-a-plugin/)
-- Creating a Generic Plugin (https://www.gatsbyjs.org/docs/creating-a-generic-plugin/)
-- Creating a Local Plugin (https://www.gatsbyjs.org/docs/creating-a-local-plugin/)
-- Creating a Source Plugin (https://www.gatsbyjs.org/docs/creating-a-source-plugin/)
-- Creating a Transformer Plugin (https://www.gatsbyjs.org/docs/creating-a-transformer-plugin/)
-- Submit to Plugin Library (https://www.gatsbyjs.org/contributing/submit-to-plugin-library/)
-- Source Plugin Tutorial (https://www.gatsbyjs.org/tutorial/source-plugin-tutorial/)
-- Maintaining a Plugin (https://www.gatsbyjs.org/docs/maintaining-a-plugin/)
-- Join Discord #plugin-authoring channel to ask questions! (https://gatsby.dev/discord/)
-          `)
-          ),
-        })
-        .demandCommand(
-          1,
-          `Pass --help to see all available commands and options.`
-        )
-    )
-    .command({
-      command: `telemetry`,
-      describe: `Enable or disable Gatsby anonymous analytics collection.`,
-      builder: yargs =>
-        yargs
-          .option(`enable`, {
-            type: `boolean`,
-            description: `Enable telemetry (default)`,
-          })
-          .option(`disable`, {
-            type: `boolean`,
-            description: `Disable telemetry`,
-          }),
-
+<<<<<<< Updated upstream
       handler: handlerP(({ enable, disable }: yargs.Arguments) => {
         const enabled = Boolean(enable) || !disable
         setTelemetryEnabled(enabled)
@@ -539,4 +495,128 @@ Creating a plugin:
     .strict()
     .recommendCommands()
     .parse(argv.slice(2))
+=======
+      .command({
+        command: `plugin [cmd]`,
+        describe: `Useful commands relating to Gatsby plugins`,
+        handler: ({ cmd, ...rest }) => {
+          console.log(yargs.getUsageInstance())
+          if (cmd === "docs") {
+            console.log(`
+      Using a plugin:
+      - What is a Plugin? (https://www.gatsbyjs.org/docs/what-is-a-plugin/)
+      - Using a Plugin in Your Site (https://www.gatsbyjs.org/docs/using-a-plugin-in-your-site/)
+      - What You Don't Need Plugins For (https://www.gatsbyjs.org/docs/what-you-dont-need-plugins-for/)
+      - Loading Plugins from Your Local Plugins Folder (https://www.gatsbyjs.org/docs/loading-plugins-from-your-local-plugins-folder/)
+      - Plugin Library (https://www.gatsbyjs.org/plugins/)
+
+      Creating a plugin:
+      - Naming a Plugin (https://www.gatsbyjs.org/docs/naming-a-plugin/)
+      - Files Gatsby Looks for in a Plugin (https://www.gatsbyjs.org/docs/files-gatsby-looks-for-in-a-plugin/)
+      - Creating a Generic Plugin (https://www.gatsbyjs.org/docs/creating-a-generic-plugin/)
+      - Creating a Local Plugin (https://www.gatsbyjs.org/docs/creating-a-local-plugin/)
+      - Creating a Source Plugin (https://www.gatsbyjs.org/docs/creating-a-source-plugin/)
+      - Creating a Transformer Plugin (https://www.gatsbyjs.org/docs/creating-a-transformer-plugin/)
+      - Submit to Plugin Library (https://www.gatsbyjs.org/contributing/submit-to-plugin-library/)
+      - Source Plugin Tutorial (https://www.gatsbyjs.org/tutorial/source-plugin-tutorial/)
+      - Maintaining a Plugin (https://www.gatsbyjs.org/docs/maintaining-a-plugin/)
+      - Join Discord #plugin-authoring channel to ask questions! (https://gatsby.dev/discord/)
+                `)
+          }
+        },
+      })
+      //   `plugin [cmd]`,
+      //   `Useful commands relating to Gatsby plugins`,
+      //   argv => {
+      //     console.log("hello from plugin")
+
+      //     console.log(argv)
+      //   }
+      // )
+      //     .command(
+      //       `plugin docs`,
+      //       `Helpful info about using and creating plugins`,
+      //       (y) => {
+      //         console.log(`
+      // Using a plugin:
+      // - What is a Plugin? (https://www.gatsbyjs.org/docs/what-is-a-plugin/)
+      // - Using a Plugin in Your Site (https://www.gatsbyjs.org/docs/using-a-plugin-in-your-site/)
+      // - What You Don't Need Plugins For (https://www.gatsbyjs.org/docs/what-you-dont-need-plugins-for/)
+      // - Loading Plugins from Your Local Plugins Folder (https://www.gatsbyjs.org/docs/loading-plugins-from-your-local-plugins-folder/)
+      // - Plugin Library (https://www.gatsbyjs.org/plugins/)
+
+      // Creating a plugin:
+      // - Naming a Plugin (https://www.gatsbyjs.org/docs/naming-a-plugin/)
+      // - Files Gatsby Looks for in a Plugin (https://www.gatsbyjs.org/docs/files-gatsby-looks-for-in-a-plugin/)
+      // - Creating a Generic Plugin (https://www.gatsbyjs.org/docs/creating-a-generic-plugin/)
+      // - Creating a Local Plugin (https://www.gatsbyjs.org/docs/creating-a-local-plugin/)
+      // - Creating a Source Plugin (https://www.gatsbyjs.org/docs/creating-a-source-plugin/)
+      // - Creating a Transformer Plugin (https://www.gatsbyjs.org/docs/creating-a-transformer-plugin/)
+      // - Submit to Plugin Library (https://www.gatsbyjs.org/contributing/submit-to-plugin-library/)
+      // - Source Plugin Tutorial (https://www.gatsbyjs.org/tutorial/source-plugin-tutorial/)
+      // - Maintaining a Plugin (https://www.gatsbyjs.org/docs/maintaining-a-plugin/)
+      // - Join Discord #plugin-authoring channel to ask questions! (https://gatsby.dev/discord/)
+      //           `)
+      //       }
+      //     )
+      .command({
+        command: `telemetry`,
+        describe: `Enable or disable Gatsby anonymous analytics collection.`,
+        builder: yargs =>
+          yargs
+            .option(`enable`, {
+              type: `boolean`,
+              description: `Enable telemetry (default)`,
+            })
+            .option(`disable`, {
+              type: `boolean`,
+              description: `Disable telemetry`,
+            }),
+
+        handler: handlerP(({ enable, disable }: yargs.Arguments) => {
+          const enabled = Boolean(enable) || !disable
+          setTelemetryEnabled(enabled)
+          report.log(`Telemetry collection ${enabled ? `enabled` : `disabled`}`)
+        }),
+      })
+      .command({
+        command: `config [cmd] [option] [value]`,
+        describe: `Set your gatsby-cli configuration settings.`,
+        builder: yargs =>
+          yargs.option(`pm`, {
+            type: `string`,
+            describe: `Set the package manager \`gatsby new\` is using.`,
+          }),
+
+        handler: handlerP(({ pm }: yargs.Arguments) => {
+          if (pm && pm !== `yarn` && pm !== `npm`) {
+            report.panic(`Package manager must be yarn or npm.`)
+          }
+
+          if (!getPackageManager()) {
+            setPackageManager(`npm`)
+          }
+
+          if (pm) {
+            // @ts-ignore
+            setPackageManager(pm)
+            return
+          }
+
+          console.log(`
+        Package Manager: ${getPackageManager()}
+        Telemetry enabled: ${isTrackingEnabled()}
+        `)
+        }),
+      })
+      .wrap(cli.terminalWidth())
+      .demandCommand(
+        1,
+        `Pass --help to see all available commands and options.`
+      )
+      .strict()
+      .recommendCommands()
+      .parse(argv.slice(2))
+  )
+>>>>>>> Stashed changes
 }
