@@ -1,7 +1,7 @@
-const fs = require(`fs-extra`)
-const path = require(`path`)
-const isUrl = require(`is-url`)
-const fetch = require(`node-fetch`)
+import fs from "fs-extra"
+import path from "path"
+import isUrl from "is-url"
+import fetch from "node-fetch"
 
 const isRelative = path => {
   if (path.slice(0, 1) == `.`) {
@@ -11,7 +11,7 @@ const isRelative = path => {
   return false
 }
 
-module.exports = async (pathOrUrl, projectRoot) => {
+export default async function resolveRecipe(pathOrUrl, projectRoot) {
   let recipePath
   if (isUrl(pathOrUrl)) {
     const res = await fetch(pathOrUrl)
@@ -25,6 +25,7 @@ module.exports = async (pathOrUrl, projectRoot) => {
     const res = await fetch(url.endsWith(`.mdx`) ? url : url + `.mdx`)
 
     if (res.status !== 200) {
+      console.log({ url, status: res.status })
       throw new Error(
         JSON.stringify({
           fetchError: `Could not fetch ${pathOrUrl} from official recipes`,
