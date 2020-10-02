@@ -1,0 +1,51 @@
+{
+  "name": "gatsby-plugin-static-image",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "babel src --out-dir dist/ --ignore \"**/__tests__\" --ignore \"**/__mocks__\" --extensions \".ts,.tsx\"",
+    "typegen": "tsc --emitDeclarationOnly --declaration --declarationDir dist/",
+    "prepare": "cross-env NODE_ENV=production npm run build && npm run typegen",
+    "watch": "babel -w src --out-dir dist/ --ignore \"**/__tests__\" --extensions \".ts,.tsx\""
+  },
+  "files": [
+    "dist",
+    "index.js",
+    "gatsby-node.js"
+  ],
+  "types": "dist/index.d.ts",
+  "homepage": "https://github.com/gatsbyjs/gatsby/tree/master/packages/gatsby-plugin-static-image#readme",
+  "devDependencies": {
+    "@types/node": "^14.10.2",
+    "@babel/cli": "^7.8.7",
+    "@babel/core": "^7.8.7",
+    "@types/babel__core": "^7.1.6",
+    "@types/babel__traverse": "^7.0.9",
+    "@types/fs-extra": "^8.1.0",
+    "cross-env": "^7.0.2",
+    "typescript": "^3.9.5"
+  },
+  "peerDependencies": {
+    "gatsby": ">=2",
+    "babel-plugin-remove-graphql-queries": "*",
+    "gatsby-cli": "*",
+    "gatsby-core-utils": "*",
+    "gatsby-image": "*",
+    "gatsby-plugin-sharp": "*",
+    "react": "*"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.8.7",
+    "@babel/traverse": "^7.8.6",
+    "chokidar": "^3.4.2",
+    "fs-extra": "^8.1.0",
+    "babel-jsx-utils": "^1.0.1"
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gatsbyjs/gatsby.git",
+    "directory": "packages/gatsby-plugin-static-image"
+  },
+  "author": "Matt Kane <matt@gatsbyjs.com>",
+  "license": "MIT"
+}
