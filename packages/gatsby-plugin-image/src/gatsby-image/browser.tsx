@@ -15,7 +15,7 @@ import {
   hasImageLoaded,
   storeImageloaded,
 } from "../hooks"
-import { LayoutWrapper, LayoutWrapperProps } from "../layout-wrapper"
+import { LayoutWrapper, ILayoutWrapperProps } from "../layout-wrapper"
 import { PlaceholderProps, Placeholder } from "../placeholder"
 import { MainImageProps, MainImage } from "../main-image"
 
@@ -25,7 +25,7 @@ export type GatsbyImageProps = Omit<
 > & {
   alt: string
   as?: ElementType
-  layout: LayoutWrapperProps["layout"]
+  layout: ILayoutWrapperProps["layout"]
   className?: string
   height?: number
   images: Pick<MainImageProps, "sources" | "fallback">

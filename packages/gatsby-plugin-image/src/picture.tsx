@@ -6,7 +6,7 @@ import React, {
 } from "react"
 import * as PropTypes from "prop-types"
 
-interface IResponsiveImageProps {
+export interface IResponsiveImageProps {
   sizes?: string
   srcSet: string
 }

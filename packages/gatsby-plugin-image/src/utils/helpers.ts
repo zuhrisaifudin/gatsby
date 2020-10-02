@@ -1,6 +1,8 @@
+// @ts-ignore
 import { murmurhash } from "babel-plugin-remove-graphql-queries/murmur"
 import { JSXOpeningElement } from "@babel/types"
 import { NodePath } from "@babel/core"
+// @ts-ignore
 import { getAttributeValues } from "babel-jsx-utils"
 
 export const SHARP_ATTRIBUTES = new Set([

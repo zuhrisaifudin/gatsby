@@ -1,8 +1,8 @@
 import { PreprocessSourceArgs } from "gatsby"
-import { babelParseToAst } from "./babel-parse-to-ast"
+import { babelParseToAst } from "./utils/babel-parse-to-ast"
 import path from "path"
-import { extractStaticImageProps } from "./parser"
-import { writeImages } from "./image-processing"
+import { extractStaticImageProps } from "./utils/parser"
+import { writeImages } from "./utils/image-processing"
 const extensions: Array<string> = [`.js`, `.jsx`, `.tsx`]
 
 export async function preprocessSource({

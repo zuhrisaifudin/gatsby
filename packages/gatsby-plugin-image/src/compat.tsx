@@ -1,11 +1,11 @@
 import React, { FunctionComponent } from "react"
 import { GatsbyImageProps } from "./gatsby-image/browser"
 import { GatsbyImage as GatsbyImageOriginal } from "./gatsby-image/server"
-import { CompatProps } from "./compat.browser"
+import { ICompatProps } from "./compat.browser"
 
 const removeNewLines = (str: string): string => str.replace(/\n/g, ``)
 
-export const GatsbyImage: FunctionComponent<CompatProps> = function GatsbyImage({
+export const GatsbyImage: FunctionComponent<ICompatProps> = function GatsbyImage({
   fixed,
   fluid,
   backgroundColor,

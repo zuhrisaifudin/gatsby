@@ -28,6 +28,7 @@ export const StaticImage: React.FC<AllProps & IPrivateProps> = ({
       ? { fixed: parsedValues }
       : { fluid: parsedValues }
 
+    //@ts-ignore
     return <Image {...gatsbyImageProps} {...imageProps} />
   }
   console.warn(`Image not loaded`, src)

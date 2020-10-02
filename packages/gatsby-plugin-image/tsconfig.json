@@ -1,7 +1,30 @@
+// {
+//   "extends": "../../tsconfig.json",
+//   "compilerOptions": {
+//     "skipLibCheck": true,
+//     "jsx": "react"
+//   },
+//   "exclude": ["node_modules", "src/__tests__", "src/__mocks__", "dist"]
+// }
+
+
 {
-  "extends": "../../tsconfig.json",
+  "compileOnSave": false,
   "compilerOptions": {
-    "skipLibCheck": true
+    "allowJs": true,
+    "declaration": true,
+    "declarationMap": true,
+    "jsx": "react",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "target": "es5",
+    "outDir": "./dist",
+    "declarationDir": "./dist",
+    "lib": ["es2016", "dom"],
+    "jsxFactory": "React.createElement",
+    "esModuleInterop": true
   },
-  "exclude": ["node_modules", "src/__tests__", "src/__mocks__", "dist"]
+  "include": ["./src/index.tsx", "./src/index.browser.tsx"]
 }
