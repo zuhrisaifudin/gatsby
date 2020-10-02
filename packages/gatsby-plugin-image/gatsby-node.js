@@ -11,3 +11,6 @@ exports.onCreateWebpackConfig = ({ stage, plugins, actions }) => {
     ],
   });
 };
+
+/* eslint-disable */
+module.exports = require("./dist/gatsby-node");

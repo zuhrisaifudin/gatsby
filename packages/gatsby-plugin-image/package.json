@@ -25,15 +25,30 @@
     "gatsby-ssr.js"
   ],
   "types": "dist/gatsby-image.d.ts",
-  "repository": "git@github.com:wardpeet/gatsby-image-nextgen.git",
-  "author": "Ward Peeters <ward@coding-tech.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gatsbyjs/gatsby.git",
+    "directory": "packages/gatsby-plugin-image"
+  },
+  "author": "Gastby",
   "license": "MIT",
   "dependencies": {
+    "@babel/parser": "^7.8.7",
+    "@babel/traverse": "^7.8.6",
+    "chokidar": "^3.4.2",
+    "fs-extra": "^8.1.0",
+    "babel-jsx-utils": "^1.0.1",
     "prop-types": "^15.7.2"
   },
   "peerDependencies": {
     "react": ">=16.8.0",
-    "react-dom": "=16.8.0"
+    "react-dom": "=16.8.0",
+    "gatsby": ">=2",
+    "babel-plugin-remove-graphql-queries": "*",
+    "gatsby-cli": "*",
+    "gatsby-core-utils": "*",
+    "gatsby-image": "*",
+    "gatsby-plugin-sharp": "*"
   },
   "devDependencies": {
     "@types/prop-types": "^15.7.3",
@@ -41,7 +56,15 @@
     "@types/react-dom": "^16.9.8",
     "del-cli": "^3.0.1",
     "microbundle": "^0.12.3",
-    "npm-run-all": "^4.1.5"
+    "npm-run-all": "^4.1.5",
+    "@types/node": "^14.10.2",
+    "@babel/cli": "^7.8.7",
+    "@babel/core": "^7.8.7",
+    "@types/babel__core": "^7.1.6",
+    "@types/babel__traverse": "^7.0.9",
+    "@types/fs-extra": "^8.1.0",
+    "cross-env": "^7.0.2",
+    "typescript": "^3.9.5"
   },
   "scripts": {
     "build": "npm-run-all -s clean build:server build:browser build:server-compat build:browser-compat",
@@ -56,6 +79,8 @@
     "watch:browser-compat": "yarn build:browser-compat --no-compress watch",
     "test": "jest",
     "test:watch": "jest --watch",
+    "typegen": "tsc --emitDeclarationOnly --declaration --declarationDir dist/",
+    "prepare": "cross-env NODE_ENV=production npm run build && npm run typegen",
     "clean": "del-cli dist/*"
   }
 }
