@@ -1,11 +1,11 @@
-import { FunctionComponent, ImgHTMLAttributes } from 'react';
-import * as PropTypes from 'prop-types';
-import { Picture, SourceProps } from './picture';
+import React, { FunctionComponent, ImgHTMLAttributes } from "react"
+import * as PropTypes from "prop-types"
+import { Picture, SourceProps } from "./picture"
 
 export type PlaceholderProps = ImgHTMLAttributes<{}> & {
-  fallback: string;
-  sources?: Array<SourceProps>;
-};
+  fallback: string
+  sources?: Array<SourceProps>
+}
 
 export const Placeholder: FunctionComponent<PlaceholderProps> = function Placeholder({
   fallback,
@@ -20,23 +20,24 @@ export const Placeholder: FunctionComponent<PlaceholderProps> = function Placeho
       aria-hidden
       alt=""
     />
-  );
-};
+  )
+}
 
-Placeholder.displayName = 'Placeholder';
+Placeholder.displayName = `Placeholder`
 Placeholder.propTypes = {
   fallback: PropTypes.string.isRequired,
   sources: Picture.propTypes.sources,
   alt: function (props, propName, componentName) {
     if (props[propName]) {
       return new Error(
-        'Invalid prop `' +
+        "Invalid prop `" +
           propName +
-          '` supplied to' +
-          ' `' +
+          "` supplied to" +
+          " `" +
           componentName +
-          '`. Validation failed.'
-      );
+          "`. Validation failed."
+      )
     }
+    return
   },
-};
+}

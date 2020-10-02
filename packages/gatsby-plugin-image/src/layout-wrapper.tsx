@@ -1,10 +1,10 @@
-import { Fragment, FunctionComponent } from 'react';
+import { Fragment, FunctionComponent } from "react"
 
-export type LayoutWrapperProps = {
-  layout: 'intrinsic' | 'responsive' | 'fixed';
-  width: number;
-  height: number;
-};
+export interface LayoutWrapperProps {
+  layout: "intrinsic" | "responsive" | "fixed"
+  width: number
+  height: number
+}
 
 const NativeScriptLoading = () => (
   <script
@@ -32,7 +32,7 @@ if (hasNativeLazyLoadSupport) {
 `,
     }}
   />
-);
+)
 
 export const LayoutWrapper: FunctionComponent<LayoutWrapperProps> = function LayoutWrapper({
   layout,
@@ -40,25 +40,25 @@ export const LayoutWrapper: FunctionComponent<LayoutWrapperProps> = function Lay
   height,
   children,
 }) {
-  let sizer = null;
-  if (layout === 'responsive') {
-    sizer = <div style={{ paddingTop: `${(width / height) * 100}%` }} />;
+  let sizer = null
+  if (layout === `responsive`) {
+    sizer = <div style={{ paddingTop: `${(width / height) * 100}%` }} />
   }
-  if (layout === 'intrinsic') {
+  if (layout === `intrinsic`) {
     sizer = (
-      <div style={{ maxWidth: width, display: 'block' }}>
+      <div style={{ maxWidth: width, display: `block` }}>
         <img
           alt=""
           role="presentation"
           aria-hidden="true"
           src={`data:image/svg+xml;charset=utf-8,%3Csvg height='${height}' width='${width}' xmlns='http://www.w3.org/2000/svg' version='1.1'%3E%3C/svg%3E`}
           style={{
-            width: '100%',
-            display: 'inline-block',
+            width: `100%`,
+            display: `inline-block`,
           }}
         />
       </div>
-    );
+    )
   }
 
   return (
@@ -67,5 +67,5 @@ export const LayoutWrapper: FunctionComponent<LayoutWrapperProps> = function Lay
       {children}
       <NativeScriptLoading />
     </Fragment>
-  );
-};
+  )
+}

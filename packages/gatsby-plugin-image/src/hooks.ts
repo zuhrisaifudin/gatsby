@@ -1,48 +1,48 @@
-import { useState, CSSProperties, useEffect } from 'react';
-const imageCache = new Set<string>();
+import { useState, CSSProperties, useEffect } from "react"
+const imageCache = new Set<string>()
 
 // Native lazy-loading support: https://addyosmani.com/blog/lazy-loading/
 export const hasNativeLazyLoadSupport =
   typeof HTMLImageElement !== `undefined` &&
-  `loading` in HTMLImageElement.prototype;
+  `loading` in HTMLImageElement.prototype
 
 export function storeImageloaded(cacheKey: string): void {
-  imageCache.add(cacheKey);
+  imageCache.add(cacheKey)
 }
 
 export function hasImageLoaded(cacheKey: string): boolean {
-  return imageCache.has(cacheKey);
+  return imageCache.has(cacheKey)
 }
 
 export function getWrapperProps(
   width: number,
   height: number,
-  layout: 'intrinsic' | 'responsive' | 'fixed'
+  layout: "intrinsic" | "responsive" | "fixed"
 ) {
   const wrapperStyle: CSSProperties = {
-    position: 'relative',
-  };
-
-  if (layout === 'fixed') {
-    wrapperStyle.width = width;
-    wrapperStyle.height = height;
+    position: `relative`,
   }
 
-  if (layout === 'intrinsic') {
-    wrapperStyle.display = 'inline-block';
+  if (layout === `fixed`) {
+    wrapperStyle.width = width
+    wrapperStyle.height = height
+  }
+
+  if (layout === `intrinsic`) {
+    wrapperStyle.display = `inline-block`
   }
 
   return {
     className: `gatsby-image`,
     style: wrapperStyle,
-  };
+  }
 }
 
 export function getMainProps(
   isLoading: boolean,
   isLoaded: boolean,
   images: any,
-  loading: 'eager' | 'lazy',
+  loading: "eager" | "lazy",
   toggleLoaded?: any,
   cacheKey?: string,
   ref?: any
@@ -51,111 +51,111 @@ export function getMainProps(
     ...images,
     loading,
     shouldLoad: isLoading,
-    'data-main-image': '',
+    "data-main-image": ``,
     style: {
       opacity: isLoaded ? 1 : 0,
     },
     onLoad: function (e: any) {
-      imageCache.add(cacheKey);
-      toggleLoaded(true);
+      imageCache.add(cacheKey)
+      toggleLoaded(true)
     },
     ref,
-  };
+  }
 
   // @ts-ignore
   if (!global.GATSBY___IMAGE) {
-    result.style.height = '100%';
-    result.style.left = 0;
-    result.style.position = 'absolute';
-    result.style.top = 0;
-    result.style.transform = 'translateZ(0)';
-    result.style.transition = 'opacity 300ms';
-    result.style.width = '100%';
-    result.style.willChange = 'opacity';
+    result.style.height = `100%`
+    result.style.left = 0
+    result.style.position = `absolute`
+    result.style.top = 0
+    result.style.transform = `translateZ(0)`
+    result.style.transition = `opacity 300ms`
+    result.style.width = `100%`
+    result.style.willChange = `opacity`
   }
 
   return {
     ...images,
     loading,
     shouldLoad: isLoading,
-    'data-main-image': '',
+    "data-main-image": ``,
     style: {
       opacity: isLoaded ? 1 : 0,
     },
     onLoad: function (e: any) {
-      imageCache.add(cacheKey);
-      toggleLoaded(true);
+      imageCache.add(cacheKey)
+      toggleLoaded(true)
     },
     ref,
-  };
+  }
 }
 
 export function getPlaceHolderProps(placeholder: any) {
   const result = {
     ...placeholder,
-    'aria-hidden': true,
-  };
+    "aria-hidden": true,
+  }
 
   // @ts-ignore
   if (!global.GATSBY___IMAGE) {
     result.style = {
-      height: '100%',
+      height: `100%`,
       left: 0,
-      position: 'absolute',
+      position: `absolute`,
       top: 0,
-      width: '100%',
-    };
+      width: `100%`,
+    }
   }
 
-  return result;
+  return result
 }
 
 export function useImageLoaded(
   cacheKey: string,
-  loading: 'lazy' | 'eager',
+  loading: "lazy" | "eager",
   ref: any
 ) {
-  const [isLoaded, toggleLoaded] = useState(false);
-  const [isLoading, toggleIsLoading] = useState(loading === 'eager');
+  const [isLoaded, toggleLoaded] = useState(false)
+  const [isLoading, toggleIsLoading] = useState(loading === `eager`)
 
   const rAF =
-    typeof window !== 'undefined' && 'requestAnimationFrame' in window
+    typeof window !== `undefined` && `requestAnimationFrame` in window
       ? requestAnimationFrame
       : function (cb: Function) {
-          return setTimeout(cb, 16);
-        };
+          return setTimeout(cb, 16)
+        }
   const cRAF =
-    typeof window !== 'undefined' && 'cancelAnimationFrame' in window
+    typeof window !== `undefined` && `cancelAnimationFrame` in window
       ? cancelAnimationFrame
-      : clearTimeout;
+      : clearTimeout
 
   useEffect(() => {
-    let interval: any;
+    let interval: any
     // @see https://stackoverflow.com/questions/44074747/componentdidmount-called-before-ref-callback/50019873#50019873
     function toggleIfRefExists() {
       if (ref.current) {
-        if (loading === 'eager' && ref.current.complete) {
-          imageCache.add(cacheKey);
-          toggleLoaded(true);
+        if (loading === `eager` && ref.current.complete) {
+          imageCache.add(cacheKey)
+          toggleLoaded(true)
         } else {
-          toggleIsLoading(true);
+          toggleIsLoading(true)
         }
       } else {
-        interval = rAF(toggleIfRefExists);
+        interval = rAF(toggleIfRefExists)
       }
     }
-    toggleIfRefExists();
+    toggleIfRefExists()
 
     return () => {
-      cRAF(interval);
-    };
-  }, []);
+      cRAF(interval)
+    }
+  }, [])
 
   return {
     isLoading,
     isLoaded,
     toggleLoaded,
-  };
+  }
 }
 
 // export function useGatsbyImage({

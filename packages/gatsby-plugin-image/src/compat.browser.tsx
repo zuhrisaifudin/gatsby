@@ -1,32 +1,32 @@
-import { FunctionComponent } from 'react';
-import { GatsbyImageProps } from './gatsby-image/browser';
-import { GatsbyImage as GatsbyImageOriginal } from './gatsby-image/browser';
+import { FunctionComponent } from "react"
+import { GatsbyImageProps } from "./gatsby-image/browser"
+import { GatsbyImage as GatsbyImageOriginal } from "./gatsby-image/browser"
 
-export type CompatProps = {
-  backgroundColor?: string;
-  Tag?: any;
+export interface CompatProps {
+  backgroundColor?: string
+  Tag?: any
   fixed?: {
-    base64?: string;
-    tracedSVG?: string;
-    width: number;
-    height: number;
-    src: string;
-    srcSet: string;
-    srcWebp?: string;
-    srcSetWebp?: string;
-  };
+    base64?: string
+    tracedSVG?: string
+    width: number
+    height: number
+    src: string
+    srcSet: string
+    srcWebp?: string
+    srcSetWebp?: string
+  }
   fluid?: {
-    base64?: string;
-    tracedSVG?: string;
-    aspectRatio: number;
-    src: string;
-    srcSet: string;
-    srcWebp?: string;
-    srcSetWebp?: string;
-    maxWidth?: number;
-    maxHeight?: number;
-  };
-};
+    base64?: string
+    tracedSVG?: string
+    aspectRatio: number
+    src: string
+    srcSet: string
+    srcWebp?: string
+    srcSetWebp?: string
+    maxWidth?: number
+    maxHeight?: number
+  }
+}
 
 export const GatsbyImage: FunctionComponent<CompatProps> = function GatsbyImage({
   fixed,
@@ -35,23 +35,23 @@ export const GatsbyImage: FunctionComponent<CompatProps> = function GatsbyImage(
   Tag,
   ...props
 }) {
-  let rewiredProps: Partial<GatsbyImageProps> = { alt: '', as: Tag, ...props };
+  let rewiredProps: Partial<GatsbyImageProps> = { alt: ``, as: Tag, ...props }
 
   if (backgroundColor) {
-    rewiredProps.style = rewiredProps.style || {};
-    rewiredProps.style.backgroundColor = backgroundColor;
+    rewiredProps.style = rewiredProps.style || {}
+    rewiredProps.style.backgroundColor = backgroundColor
   }
 
   if (fixed) {
     if (Array.isArray(fixed)) {
-      fixed = fixed[0];
+      fixed = fixed[0]
     }
 
     rewiredProps = {
       placeholder: {
         fallback: fixed.base64 || fixed.tracedSVG,
       },
-      layout: 'fixed',
+      layout: `fixed`,
       width: fixed.width,
       height: fixed.height,
       images: {
@@ -61,19 +61,19 @@ export const GatsbyImage: FunctionComponent<CompatProps> = function GatsbyImage(
         },
         sources: [],
       },
-    };
+    }
 
     if (fixed.srcWebp) {
       rewiredProps.images.sources.push({
         srcSet: fixed.srcSetWebp,
-        type: 'image/webp',
-      });
+        type: `image/webp`,
+      })
     }
   }
 
   if (fluid) {
     if (Array.isArray(fluid)) {
-      fluid = fluid[0];
+      fluid = fluid[0]
     }
 
     rewiredProps = {
@@ -82,7 +82,7 @@ export const GatsbyImage: FunctionComponent<CompatProps> = function GatsbyImage(
       },
       width: 1,
       height: fluid.aspectRatio,
-      layout: 'responsive',
+      layout: `responsive`,
       images: {
         fallback: {
           src: fluid.src,
@@ -90,13 +90,13 @@ export const GatsbyImage: FunctionComponent<CompatProps> = function GatsbyImage(
         },
         sources: [],
       },
-    };
+    }
 
     if (fluid.srcWebp) {
       rewiredProps.images.sources.push({
         srcSet: fluid.srcSetWebp,
-        type: 'image/webp',
-      });
+        type: `image/webp`,
+      })
     }
   }
 
@@ -106,5 +106,5 @@ export const GatsbyImage: FunctionComponent<CompatProps> = function GatsbyImage(
       {...props}
       {...(rewiredProps as GatsbyImageProps)}
     />
-  );
-};
+  )
+}

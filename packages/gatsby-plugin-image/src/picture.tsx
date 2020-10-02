@@ -3,47 +3,47 @@ import {
   ImgHTMLAttributes,
   forwardRef,
   LegacyRef,
-} from 'react';
-import * as PropTypes from 'prop-types';
+} from "react"
+import * as PropTypes from "prop-types"
 
-type ResponsiveImageProps = {
-  sizes?: string;
-  srcSet: string;
-};
+interface ResponsiveImageProps {
+  sizes?: string
+  srcSet: string
+}
 
 export type SourceProps = ResponsiveImageProps &
   (
     | {
-        media: string;
-        type?: string;
+        media: string
+        type?: string
       }
     | {
-        media?: string;
-        type: string;
+        media?: string
+        type: string
       }
-  );
+  )
 
-type FallbackProps = { src: string } & Partial<ResponsiveImageProps>;
+type FallbackProps = { src: string } & Partial<ResponsiveImageProps>
 
 type ImageProps = ImgHTMLAttributes<{}> & {
-  src: string;
-  alt: string;
-  shouldLoad: boolean;
-  innerRef: LegacyRef<HTMLImageElement>;
-};
+  src: string
+  alt: string
+  shouldLoad: boolean
+  innerRef: LegacyRef<HTMLImageElement>
+}
 
 export type PictureProps = ImgHTMLAttributes<{}> & {
-  fallback: FallbackProps;
-  sources?: Array<SourceProps>;
-  alt: string;
-  shouldLoad?: boolean;
-};
+  fallback: FallbackProps
+  sources?: Array<SourceProps>
+  alt: string
+  shouldLoad?: boolean
+}
 
 const Image: FunctionComponent<ImageProps> = function Image({
   src,
   srcSet,
   loading,
-  alt = '',
+  alt = ``,
   shouldLoad,
   innerRef,
   ...props
@@ -60,8 +60,8 @@ const Image: FunctionComponent<ImageProps> = function Image({
       // @ts-ignore
       ref={innerRef}
     />
-  );
-};
+  )
+}
 
 export const Picture = forwardRef<HTMLImageElement, PictureProps>(
   function Picture(
@@ -70,29 +70,27 @@ export const Picture = forwardRef<HTMLImageElement, PictureProps>(
   ) {
     const fallbackImage = (
       <Image {...props} {...fallback} shouldLoad={shouldLoad} innerRef={ref} />
-    );
+    )
 
     if (!sources.length) {
-      return fallbackImage;
+      return fallbackImage
     }
 
     return (
       <picture>
-        {sources.map(({ media, srcSet, type }) => {
-          return (
-            <source
-              key={`${media}-${type}-${srcSet}`}
-              type={type}
-              media={media}
-              srcSet={srcSet}
-            />
-          );
-        })}
+        {sources.map(({ media, srcSet, type }) => (
+          <source
+            key={`${media}-${type}-${srcSet}`}
+            type={type}
+            media={media}
+            srcSet={srcSet}
+          />
+        ))}
         {fallbackImage}
       </picture>
-    );
+    )
   }
-);
+)
 
 Image.propTypes = {
   src: PropTypes.string.isRequired,
@@ -100,9 +98,9 @@ Image.propTypes = {
   sizes: PropTypes.string,
   srcSet: PropTypes.string,
   shouldLoad: PropTypes.bool,
-};
+}
 
-Picture.displayName = 'Picture';
+Picture.displayName = `Picture`
 Picture.propTypes = {
   alt: PropTypes.string.isRequired,
   shouldLoad: PropTypes.bool,
@@ -127,4 +125,4 @@ Picture.propTypes = {
       }),
     ])
   ),
-};
+}
