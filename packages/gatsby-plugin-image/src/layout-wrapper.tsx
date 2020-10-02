@@ -6,7 +6,7 @@ export interface ILayoutWrapperProps {
   height: number
 }
 
-const NativeScriptLoading = () => (
+const NativeScriptLoading = (): JSX.Element => (
   <script
     type="module"
     dangerouslySetInnerHTML={{

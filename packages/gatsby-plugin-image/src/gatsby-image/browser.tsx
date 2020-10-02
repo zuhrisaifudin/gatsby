@@ -68,7 +68,7 @@ export const GatsbyImageHydrator: FunctionComponent<GatsbyImageProps> = function
     layout
   )
 
-  useEffect(() => {
+  useEffect((): any => {
     const doRender = hydrated.current ? render : hydrate
 
     if (root.current) {
@@ -81,7 +81,7 @@ export const GatsbyImageHydrator: FunctionComponent<GatsbyImageProps> = function
 
           storeImageloaded(JSON.stringify(images))
         })
-        return
+        return null
       }
 
       const cacheKey = JSON.stringify(images)

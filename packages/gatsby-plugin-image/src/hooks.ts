@@ -18,7 +18,7 @@ export function getWrapperProps(
   width: number,
   height: number,
   layout: "intrinsic" | "responsive" | "fixed"
-): {className: string, style: CSSProperties} {
+): { className: string; style: CSSProperties } {
   const wrapperStyle: CSSProperties = {
     position: `relative`,
   }
@@ -55,7 +55,7 @@ export function getMainProps(
     style: {
       opacity: isLoaded ? 1 : 0,
     },
-    onLoad: function (e: any) {
+    onLoad: function (): void {
       imageCache.add(cacheKey)
       toggleLoaded(true)
     },
@@ -82,7 +82,7 @@ export function getMainProps(
     style: {
       opacity: isLoaded ? 1 : 0,
     },
-    onLoad: function (e: any) {
+    onLoad: function (): void {
       imageCache.add(cacheKey)
       toggleLoaded(true)
     },
@@ -121,7 +121,7 @@ export function useImageLoaded(
   const rAF =
     typeof window !== `undefined` && `requestAnimationFrame` in window
       ? requestAnimationFrame
-      : function (cb: Function) {
+      : function (cb: Function): number {
           return setTimeout(cb, 16)
         }
   const cRAF =
@@ -132,7 +132,7 @@ export function useImageLoaded(
   useEffect(() => {
     let interval: any
     // @see https://stackoverflow.com/questions/44074747/componentdidmount-called-before-ref-callback/50019873#50019873
-    function toggleIfRefExists() {
+    function toggleIfRefExists(): void {
       if (ref.current) {
         if (loading === `eager` && ref.current.complete) {
           imageCache.add(cacheKey)
@@ -146,7 +146,7 @@ export function useImageLoaded(
     }
     toggleIfRefExists()
 
-    return () => {
+    return (): void => {
       cRAF(interval)
     }
   }, [])
