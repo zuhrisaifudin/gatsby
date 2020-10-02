@@ -1,4 +1,4 @@
-import {
+import React, {
   ElementType,
   useEffect,
   useRef,
@@ -112,7 +112,7 @@ export const GatsbyImageHydrator: FunctionComponent<GatsbyImageProps> = function
 
       if (!(`IntersectionObserver` in window)) {
         toggleIsLoading(true)
-        return
+        return null
       }
 
       io.current = new IntersectionObserver(
@@ -131,7 +131,7 @@ export const GatsbyImageHydrator: FunctionComponent<GatsbyImageProps> = function
       io.current.observe(root.current)
     }
 
-    return () => {
+    return (): any => {
       if (root.current) {
         if (io.current) {
           io.current.unobserve(root.current)

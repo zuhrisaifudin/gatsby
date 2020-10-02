@@ -1,4 +1,4 @@
-import {
+import React, {
   FunctionComponent,
   ImgHTMLAttributes,
   forwardRef,
@@ -6,12 +6,12 @@ import {
 } from "react"
 import * as PropTypes from "prop-types"
 
-interface ResponsiveImageProps {
+interface IResponsiveImageProps {
   sizes?: string
   srcSet: string
 }
 
-export type SourceProps = ResponsiveImageProps &
+export type SourceProps = IResponsiveImageProps &
   (
     | {
         media: string
@@ -23,7 +23,7 @@ export type SourceProps = ResponsiveImageProps &
       }
   )
 
-type FallbackProps = { src: string } & Partial<ResponsiveImageProps>
+type FallbackProps = { src: string } & Partial<IResponsiveImageProps>
 
 type ImageProps = ImgHTMLAttributes<{}> & {
   src: string

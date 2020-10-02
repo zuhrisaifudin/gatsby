@@ -1,6 +1,6 @@
-import { Fragment, FunctionComponent } from "react"
+import React, { Fragment, FunctionComponent } from "react"
 
-export interface LayoutWrapperProps {
+export interface ILayoutWrapperProps {
   layout: "intrinsic" | "responsive" | "fixed"
   width: number
   height: number
@@ -34,7 +34,7 @@ if (hasNativeLazyLoadSupport) {
   />
 )
 
-export const LayoutWrapper: FunctionComponent<LayoutWrapperProps> = function LayoutWrapper({
+export const LayoutWrapper: FunctionComponent<ILayoutWrapperProps> = function LayoutWrapper({
   layout,
   width,
   height,

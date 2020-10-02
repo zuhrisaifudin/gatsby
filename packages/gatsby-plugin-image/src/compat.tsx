@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react"
+import React, { FunctionComponent } from "react"
 import { GatsbyImageProps } from "./gatsby-image/browser"
 import { GatsbyImage as GatsbyImageOriginal } from "./gatsby-image/server"
 import { CompatProps } from "./compat.browser"

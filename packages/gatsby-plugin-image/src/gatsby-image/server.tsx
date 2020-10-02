@@ -1,4 +1,4 @@
-import { ElementType, FunctionComponent, CSSProperties } from "react"
+import React, { ElementType, FunctionComponent, CSSProperties } from "react"
 import { GatsbyImageProps } from "./browser"
 import { getWrapperProps, getMainProps, getPlaceHolderProps } from "../hooks"
 import { Placeholder } from "../placeholder"

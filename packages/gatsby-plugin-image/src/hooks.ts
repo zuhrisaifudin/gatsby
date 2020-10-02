@@ -18,7 +18,7 @@ export function getWrapperProps(
   width: number,
   height: number,
   layout: "intrinsic" | "responsive" | "fixed"
-) {
+): {className: string, style: CSSProperties} {
   const wrapperStyle: CSSProperties = {
     position: `relative`,
   }
@@ -90,7 +90,7 @@ export function getMainProps(
   }
 }
 
-export function getPlaceHolderProps(placeholder: any) {
+export function getPlaceHolderProps(placeholder: any): any {
   const result = {
     ...placeholder,
     "aria-hidden": true,
@@ -114,7 +114,7 @@ export function useImageLoaded(
   cacheKey: string,
   loading: "lazy" | "eager",
   ref: any
-) {
+): any {
   const [isLoaded, toggleLoaded] = useState(false)
   const [isLoading, toggleIsLoading] = useState(loading === `eager`)
 
@@ -157,39 +157,3 @@ export function useImageLoaded(
     toggleLoaded,
   }
 }
-
-// export function useGatsbyImage({
-//   placeholder,
-//   images,
-//   width,
-//   height,
-//   aspectRatio,
-//   maxWidth,
-//   maxHeight,
-//   loading = 'lazy',
-// }: any): any {
-//   const cacheKey = JSON.stringify(images);
-//   const ref = useRef();
-//   const { isLoading, isLoaded, toggleLoaded } = useImageLoaded(
-//     cacheKey,
-//     loading,
-//     ref
-//   );
-
-//   return {
-//     getWrapperProps: () =>
-//       getWrapperProps(width, height, layout),
-//     getMainImageProps: () =>
-//       getMainProps(
-//         isLoading || hasNativeLazyLoadSupport,
-//         isLoaded,
-//         images,
-//         loading,
-//         aspectRatio,
-//         toggleLoaded,
-//         cacheKey,
-//         ref
-//       ),
-//     getPlaceholderProps: () => getPlaceHolderProps(placeholder),
-//   };
-// }

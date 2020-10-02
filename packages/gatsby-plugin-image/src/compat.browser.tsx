@@ -1,8 +1,8 @@
-import { FunctionComponent } from "react"
+import React, { FunctionComponent } from "react"
 import { GatsbyImageProps } from "./gatsby-image/browser"
 import { GatsbyImage as GatsbyImageOriginal } from "./gatsby-image/browser"
 
-export interface CompatProps {
+export interface ICompatProps {
   backgroundColor?: string
   Tag?: any
   fixed?: {
@@ -28,7 +28,7 @@ export interface CompatProps {
   }
 }
 
-export const GatsbyImage: FunctionComponent<CompatProps> = function GatsbyImage({
+export const GatsbyImage: FunctionComponent<ICompatProps> = function GatsbyImage({
   fixed,
   fluid,
   backgroundColor,

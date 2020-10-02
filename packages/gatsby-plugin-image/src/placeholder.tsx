@@ -27,7 +27,7 @@ Placeholder.displayName = `Placeholder`
 Placeholder.propTypes = {
   fallback: PropTypes.string.isRequired,
   sources: Picture.propTypes.sources,
-  alt: function (props, propName, componentName) {
+  alt: function (props, propName, componentName): Error | null {
     if (props[propName]) {
       return new Error(
         "Invalid prop `" +
@@ -38,6 +38,6 @@ Placeholder.propTypes = {
           "`. Validation failed."
       )
     }
-    return
+    return null
   },
 }
