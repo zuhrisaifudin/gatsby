@@ -93,6 +93,9 @@ interface IAnswers {
   features?: Array<keyof typeof features>
 }
 
+/**
+ * Interface for plugin JSON files
+ */
 interface IPluginEntry {
   /**
    * Message displayed in the menu when selecting the plugin
