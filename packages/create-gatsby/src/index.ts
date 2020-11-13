@@ -262,7 +262,7 @@ ${c.bold(`Thanks! Here's what we'll now do:`)}
   await initStarter(DEFAULT_STARTER, data.project, packages.map(removeKey))
 
   console.log(c.green(`✔ `) + `Created site in ` + c.green(data.project))
-  console.log({ plugins, pluginConfig })
+
   if (plugins.length) {
     console.log(c.bold(`🔌 Installing plugins...`))
     await installPlugins(plugins, pluginConfig, path.resolve(data.project), [])
