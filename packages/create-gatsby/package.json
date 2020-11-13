@@ -16,7 +16,7 @@
     "cli.js"
   ],
   "dependencies": {
-    "readable-stream": "^3.6.0"
+    "readable-stream": "^2.3.6"
   },
   "devDependencies": {
     "@babel/runtime": "^7.12.1",
