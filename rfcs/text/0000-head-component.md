@@ -174,6 +174,54 @@ That is confusing, as the `title` prop is _not_ part of the react-helmet API, an
 
 That feels like more trouble than it's worth to me. I think the tradeoff of owning that API surface area and the bugs are preferable.
 
+## Transparent react-helmet with `Meta` components
+
+To combat the weirdness of wrapping react-helmet, we could also consider introducing special `<Meta>` (and `<MetaTitle>`?) components that would be used in place of the standard `<meta>` elements.
+
+This would allow us to turn `<MetaTitle>` and other `<Meta>` components into the recommended set of meta tags automatically. Example usage would look like this:
+
+```JSX
+import { Helmet, Meta, MetaTitle } from "gatsby"
+
+<Helmet>
+  <MetaTitle>Title</MetaTitle>
+  <Meta name="description" content="Description" />
+  <Meta name="twitter:site" content="@username" />
+</Helmet>
+
+// ...would turn into...
+
+// General tags
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="${baseUrl}${location.pathname}" />
+
+// Title
+<title>Title</title>
+<meta name="twitter:title" content="Title" />
+<meta property="og:title" content="Title" />
+
+// Description
+<meta name="description" content="Description" />
+<meta name="twitter:description" content="Description" />
+<meta property="og:description" content="Description" />
+
+// Standard Meta tag
+<meta name="twitter:site" content="@username" />
+```
+
+The upside is that this makes the boundary between the (now completely bog standard) react-helmet API and the Gatsby-specific additions very clear. We could again refer straight to the react-helmet documentation.
+
+The downside is that it's more verbose. It could lead to users adding redundant meta tags that we theoretically already add automatically, for example:
+
+```JSX
+<Helmet>
+  <MetaTitle>Title</MetaTitle>
+  {/* REDUNDANT: <MetaTitle> already does this automatically for them */}
+  <Meta property="og:title" content="Title" />
+</Helmet>
+```
+
 # Adoption strategy
 
 This will work out of the box in all existing Gatsby apps and will be interoperable with the standard `<SEO>` component highlighted in our docs as it also uses react-helmet.
