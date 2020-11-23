@@ -40,7 +40,11 @@ This is not only confusing and more complex than it needs to be, but also not ma
 
 # Detailed design
 
-In general, this component should work similarly to the [`<SEO>` component from our docs](https://www.gatsbyjs.com/docs/add-seo-component/) and be based on [react-helmet](https://github.com/nfl/react-helmet) (the standard in the React community).
+In general, this component should work similarly to the [`<SEO>` component from our docs](https://www.gatsbyjs.com/docs/add-seo-component/) and be based on [react-helmet](https://github.com/nfl/react-helmet), the standard in the React community.
+
+Compared to normal react-helmet, this `<Head>` component can leverage the information Gatsby has about a website (specifically, the `siteMetadata` and current path). On top of that, basic information, such as the page title, is provided via props (instead of manually via meta tags) allowing us to generate a set of "best practice" meta tags that work well across search and social media automatically.
+
+## API
 
 Users define the default metadata in the `gatsby-config.js` via the `siteMetadata` field:
 
@@ -50,7 +54,7 @@ module.exports = {
   siteMetadata: {
     title: "Dick's Flower Shop",
     description: "Get a beautiful flower bouquet delivered to your doorstep in less than an hour!",
-    url: "https://dicks.flowers",
+    baseUrl: "https://dicks.flowers",
     image: "/images/social-media.png",
   }
 }
@@ -90,8 +94,6 @@ export const query = graphql`
 `
 ```
 
-## Basic information
-
 To provide a great experience across search and social media, four pieces of information need to be present on every page:
 
 - Title (e.g. "Dick's Flower Shop")
@@ -119,21 +121,7 @@ With these four basic pieces of information we can create [a set of meta tags](h
 <meta property="og:description" content="${description}" />
 ```
 
-To ensure we can always inject these (duplicate) meta tags for the basic information, we let users provide the defaults from siteMetadata:
-
-```JS
-// gatsby-config.js
-module.exports = {
-  siteMetadata: {
-    title: "Dick's Flower Shop",
-    description: "Get a beautiful flower bouquet delivered to your doorstep in less than an hour!",
-    baseUrl: "https://dicks.flowers",
-    image: "/images/social-media.png",
-  }
-}
-```
-
-And on pages, users provide the overrides via props:
+To ensure we can always inject these (duplicate) meta tags for the basic information, we let users provide the defaults from siteMetadata (see example above) and users provide the overrides for certain pages via props:
 
 ```JSX
 import { Head } from "gatsby"
