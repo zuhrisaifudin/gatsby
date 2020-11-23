@@ -9,7 +9,7 @@ Add a `<Head>` component to Gatsby as the blessed way of adding meta tags to pag
 # Basic example
 
 ```JS
-// src/pages/bouquet/{Bouquet.name}.js
+// src/pages/about.js
 import React from "react"
 import { Head } from "gatsby"
 
@@ -17,24 +17,15 @@ export default (props) => (
   <>
     <Head
       // Basic information handled via props
-      title={props.data.bouquet.name}
-      description={`Get ${props.data.bouquet.name} delivered to your doorstep in less than an hour`}
+      title="About Dick's Flower Shop"
+      description="Who is Dick and why did he create yet another flower shop"
     >
       {/* Extra meta tags can be added by rendering them as children */}
       <meta name="twitter:site" content="@dicksflowers" />
     </Head>
-    <h1>{props.data.bouquet.name}</h1>
+    <h1>About Us</h1>
   </>
 )
-
-export const query = graphql`
-  query ($id: String) {
-    bouquet(id: { eq: $id }) {
-      id
-      name
-    }
-  }
-}
 ```
 
 # Motivation
@@ -43,7 +34,8 @@ Gatsby is fantastic for SEO thanks to its outstanding performance. However, we t
 
 This is not only confusing and more complex than it needs to be, but also not maintainable. We can never update or improve code users copy-and-paste. We also cannot bake best practices into our SEO setup to make every Gatsby site shine across search and social media by default.
 
-> "I spent 3ish hours building a landing page last week and 3ish more hours trying to get a darned open graph image to show up in all the right social media tags. I think something like this would be fantastic."
+> _“I spent 3ish hours building a landing page last week and 3ish more hours trying to get a darned open graph image to show up in all the right social media tags. I think something like this would be fantastic.”_
+>
 > – Kyle Gill
 
 # Detailed design
