@@ -87,7 +87,7 @@ export const query = graphql`
       name
     }
   }
-}
+`
 ```
 
 ## Basic information
