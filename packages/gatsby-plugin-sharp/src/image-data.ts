@@ -19,6 +19,7 @@ export interface ISharpGatsbyImageArgs {
   height?: number
   maxWidth?: number
   maxHeight?: number
+  aspectRatio?: number
   sizes?: string
   quality?: number
   transformOptions: {

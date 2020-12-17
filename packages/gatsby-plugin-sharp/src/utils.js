@@ -111,10 +111,19 @@ const dedupeAndSortDensities = values =>
   Array.from(new Set([1, ...values])).sort()
 
 export function calculateImageSizes(args) {
-  const { width, maxWidth, height, maxHeight, file, layout, reporter } = args
+  const {
+    width,
+    maxWidth,
+    height,
+    maxHeight,
+    aspectRatio,
+    file,
+    layout,
+    reporter,
+  } = args
 
   // check that all dimensions provided are positive
-  const userDimensions = { width, maxWidth, height, maxHeight }
+  const userDimensions = { width, maxWidth, height, maxHeight, aspectRatio }
   const erroneousUserDimensions = Object.entries(userDimensions).filter(
     ([_, size]) => typeof size === `number` && size < 1
   )
@@ -144,12 +153,14 @@ export function fixedImageSizes({
   maxWidth,
   height,
   maxHeight,
+  aspectRatio: userAspectRatio,
   transformOptions = {},
   outputPixelDensities = DEFAULT_PIXEL_DENSITIES,
   srcSetBreakpoints,
   reporter,
 }) {
-  let aspectRatio = imgDimensions.width / imgDimensions.height
+  let aspectRatio =
+    userAspectRatio || imgDimensions.width / imgDimensions.height
   const { fit = `cover` } = transformOptions
   // Sort, dedupe and ensure there's a 1
   const densities = dedupeAndSortDensities(outputPixelDensities)
@@ -229,6 +240,7 @@ export function fluidImageSizes({
   width,
   maxWidth,
   height,
+  aspectRatio: userAspectRatio,
   transformOptions = {},
   maxHeight,
   outputPixelDensities = DEFAULT_PIXEL_DENSITIES,
@@ -245,7 +257,8 @@ export function fluidImageSizes({
     reporter
   )
   let sizes
-  let aspectRatio = imgDimensions.width / imgDimensions.height
+  let aspectRatio =
+    userAspectRatio || imgDimensions.width / imgDimensions.height
   // Sort, dedupe and ensure there's a 1
   const densities = dedupeAndSortDensities(outputPixelDensities)
 
@@ -254,6 +267,7 @@ export function fluidImageSizes({
     const calculated = getDimensionsAndAspectRatio(imgDimensions, {
       width: maxWidth,
       height: maxHeight,
+      userAspectRatio,
       fit,
     })
     maxWidth = calculated.width
@@ -339,9 +353,9 @@ export const getSizes = (width, layout) => {
 export const getSrcSet = images =>
   images.map(image => `${image.src} ${image.width}w`).join(`,\n`)
 
-export function getDimensionsAndAspectRatio(dimensions, options) {
+export function getDimensionsAndAspectRatio(dimensions, aspectRatio, options) {
   // Calculate the eventual width/height of the image.
-  const imageAspectRatio = dimensions.width / dimensions.height
+  const imageAspectRatio = aspectRatio || dimensions.width / dimensions.height
 
   let width = options.width
   let height = options.height
@@ -395,6 +409,6 @@ export function getDimensionsAndAspectRatio(dimensions, options) {
   return {
     width,
     height,
-    aspectRatio: width / height,
+    aspectRatio: imageAspectRatio,
   }
 }

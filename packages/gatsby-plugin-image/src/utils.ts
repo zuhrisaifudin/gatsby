@@ -3,6 +3,7 @@ import { Layout } from "./image-utils"
 
 export interface ICommonImageProps {
   layout?: Layout
+  aspectRatio?: number
   quality?: number
   jpegQuality?: number
   pngQuality?: number

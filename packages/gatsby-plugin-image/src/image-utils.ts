@@ -23,6 +23,7 @@ export interface IImageSizeArgs {
   height?: number
   maxWidth?: number
   maxHeight?: number
+  aspectRatio?: number
   layout?: Layout
   filename: string
   outputPixelDensities?: Array<number>
@@ -87,6 +88,7 @@ export interface IGatsbyImageHelperArgs {
   height?: number
   maxWidth?: number
   maxHeight?: number
+  aspectRatio?: number
   sizes?: string
   reporter?: IReporter
   sourceMetadata?: { width: number; height: number; format: ImageFormat }
