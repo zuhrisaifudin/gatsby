@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`file updates reduces worker roots correctly 1`] = `
+Object {
+  "end": 2,
+  "example.com": Object {
+    "speed": 5,
+    "totalBytes": 51,
+  },
+  "hostNames": Array [
+    "example.com",
+    "total",
+  ],
+  "start": 1,
+  "time": 1487076708,
+  "total": Object {
+    "speed": 5,
+    "totalBytes": 51,
+  },
+}
+`;
+
+exports[`file updates sums the total bytes correctly 1`] = `
+Object {
+  "end": 4,
+  "files": Object {
+    "http://example.com/icon.png": Object {
+      "host": "example.com",
+      "totalBytes": 7,
+      "url": "http://example.com/icon.png",
+    },
+    "http://example.com/icon2.png": Object {
+      "host": "example.com",
+      "totalBytes": 6,
+      "url": "http://example.com/icon2.png",
+    },
+    "http://example2.com/icon2.png": Object {
+      "host": "example2.com",
+      "totalBytes": 1,
+      "url": "http://example2.com/icon2.png",
+    },
+  },
+  "hosts": Object {
+    "example.com": Object {
+      "speed": 0,
+      "totalBytes": 13,
+    },
+    "example2.com": Object {
+      "speed": 0,
+      "totalBytes": 1,
+    },
+    "total": Object {
+      "speed": 0,
+      "totalBytes": 14,
+    },
+  },
+  "start": 1,
+}
+`;
+
+exports[`file updates updates stream speeds correctly 1`] = `
+Object {
+  "files": Object {},
+  "hosts": Object {
+    "example.com": Object {
+      "speed": 2,
+      "totalBytes": 0,
+    },
+    "total": Object {
+      "speed": 2,
+      "totalBytes": 0,
+    },
+  },
+}
+`;
+
+exports[`file updates updates stream speeds correctly 2`] = `
+Object {
+  "files": Object {},
+  "hosts": Object {
+    "example.com": Object {
+      "speed": 5,
+      "totalBytes": 0,
+    },
+    "total": Object {
+      "speed": 5,
+      "totalBytes": 0,
+    },
+  },
+}
+`;
