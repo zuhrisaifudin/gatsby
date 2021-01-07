@@ -192,6 +192,39 @@ class LocalNodeModel {
    * @returns {Node[]}
    */
   getAllNodes(args, pageDependencies) {
+    // Is this function called frequently for markdown images?
+    /*
+      - node-model.js:203 reduce
+    [gabe-fs-markdown-images]/[gatsby]/src/schema/node-model.js:203:13
+
+  - Array.reduce
+
+  - node-model.js:202 LocalNodeModel.getAllNodes
+    [gabe-fs-markdown-images]/[gatsby]/src/schema/node-model.js:202:35
+
+  - node-model.js:528 ContextualNodeModel.getAllNodes
+    [gabe-fs-markdown-images]/[gatsby]/src/schema/node-model.js:528:27
+
+  - resolvers.ts:382 resolve
+    [gabe-fs-markdown-images]/[gatsby]/src/schema/resolvers.ts:382:27
+
+  - resolvers.ts:398 resolveValue
+    [gabe-fs-markdown-images]/[gatsby]/src/schema/resolvers.ts:398:7
+
+  - resolvers.ts:388 fileByPathResolver
+    [gabe-fs-markdown-images]/[gatsby]/src/schema/resolvers.ts:388:12
+
+  - runMicrotasks
+
+  - task_queues.js:93 processTicksAndRejections
+    internal/process/task_queues.js:93:5
+
+  - task_queues.js:62 runNextTicks
+    internal/process/task_queues.js:62:3
+
+  - timers.js:434 processImmediate
+
+     */
     const { type } = args || {}
 
     let result
@@ -199,16 +232,16 @@ class LocalNodeModel {
       result = getNodes()
     } else {
       const nodeTypeNames = toNodeTypeNames(this.schema, type)
-      const nodes = nodeTypeNames.reduce((acc, typeName) => {
-        acc.push(...getNodesByType(typeName))
-        return acc
-      }, [])
-      result = nodes.filter(Boolean)
+
+      result = []
+      nodeTypeNames.forEach(typeName => {
+        const tNodes = getNodesByType(typeName)
+        result = result.concat(tNodes)
+      })
+      result = result.filter(Boolean)
     }
 
-    if (result) {
-      result.forEach(node => this.trackInlineObjectsInRootNode(node))
-    }
+    result.forEach(node => this.trackInlineObjectsInRootNode(node))
 
     if (pageDependencies) {
       return this.trackPageDependencies(result, pageDependencies)
