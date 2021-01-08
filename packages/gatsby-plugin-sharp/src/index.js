@@ -2,6 +2,7 @@ const sharp = require(`./safe-sharp`)
 const { generateImageData } = require(`./image-data`)
 const imageSize = require(`probe-image-size`)
 const { isCI } = require(`gatsby-core-utils`)
+const promiseRetry = require(`promise-retry`)
 
 const _ = require(`lodash`)
 const fs = require(`fs-extra`)
@@ -449,7 +450,18 @@ async function fluid({ file, args = {}, reporter, cache }) {
   // images are intended to be displayed at their native resolution.
   let metadata
   try {
-    metadata = await sharp(file.absolutePath).metadata()
+    await promiseRetry(function (retry, number) {
+      reporter.verbose(`Attempting to retrieve metadata from image`, number)
+
+      return sharp(file.absolutePath).metadata().catch(retry)
+    }).then(
+      function (value) {
+        metadata = value
+      },
+      function (err) {
+        throw err
+      }
+    )
   } catch (err) {
     reportError(
       `Failed to retrieve metadata from image ${file.absolutePath}`,
