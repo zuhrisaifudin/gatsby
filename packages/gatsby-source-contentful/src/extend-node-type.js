@@ -190,7 +190,7 @@ const generateImageSource = (
   height,
   toFormat,
   _fit, // We use resizingBehavior instead
-  { jpegProgressive, quality, cropFocus, backgroundColor, resizingBehavior }
+  options = {}
 ) => {
   // Ensure we stay within Contentfuls Image API limits
   if (width > CONTENTFUL_IMAGE_MAX_SIZE) {
@@ -209,6 +209,14 @@ const generateImageSource = (
     )
     return undefined
   }
+
+  const {
+    jpegProgressive,
+    quality,
+    cropFocus,
+    backgroundColor,
+    resizingBehavior,
+  } = options
 
   const src = createUrl(filename, {
     width,
