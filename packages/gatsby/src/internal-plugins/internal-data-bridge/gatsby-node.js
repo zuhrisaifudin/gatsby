@@ -3,7 +3,7 @@ const chokidar = require(`chokidar`)
 const systemPath = require(`path`)
 const _ = require(`lodash`)
 
-const { emitter } = require(`../../redux`)
+const { emitter, store } = require(`../../redux`)
 const { boundActionCreators } = require(`../../redux/actions`)
 const { getNode } = require(`../../redux/nodes`)
 
@@ -168,29 +168,66 @@ exports.createResolvers = ({ createResolvers }) => {
       },
     },
   }
+
+  if (process.env.GATSBY_EXPERIMENTAL_NO_PAGE_NODES) {
+    resolvers.Query = {
+      // TODO add JSON field for page context.
+      sitePage: {
+        type: `SitePage`,
+        resolve(source, args, context, info) {
+          const { pages } = store.getState()
+          let pagePath = ``
+          if (args.path?.eq && pages.get(args.path.eq)) {
+            pagePath = args.path.eq
+          } else {
+            pagePath = pages.keys().next().value
+          }
+          const page = pages.get(pagePath)
+          page.id = pagePath
+          return page
+        },
+      },
+      allSitePage: {
+        type: `SitePageConnection`,
+        resolve(source, args, context, info) {
+          const { pages } = store.getState()
+          const mappedPages = [...pages.values()].map(page => {
+            page.id = page.path
+            return page
+          })
+
+          // TODO how do you make this work for both edges & nodes?
+          return { nodes: mappedPages }
+        },
+      },
+    }
+  }
+
   createResolvers(resolvers)
 }
 
 exports.onCreatePage = ({ createContentDigest, page, actions }) => {
-  const { createNode } = actions
-  // eslint-disable-next-line
-  const { updatedAt, ...pageWithoutUpdated } = page
+  if (!process.env.GATSBY_EXPERIMENTAL_NO_PAGE_NODES) {
+    const { createNode } = actions
+    // eslint-disable-next-line
+    const { updatedAt, ...pageWithoutUpdated } = page
 
-  // Add page.
-  createNode({
-    ...pageWithoutUpdated,
-    id: createPageId(page.path),
-    parent: null,
-    children: [],
-    internal: {
-      type: `SitePage`,
-      contentDigest: createContentDigest(pageWithoutUpdated),
-      description:
-        page.pluginCreatorId === `Plugin default-site-plugin`
-          ? `Your site's "gatsby-node.js"`
-          : page.pluginCreatorId,
-    },
-  })
+    // Add page.
+    createNode({
+      ...pageWithoutUpdated,
+      id: createPageId(page.path),
+      parent: null,
+      children: [],
+      internal: {
+        type: `SitePage`,
+        contentDigest: createContentDigest(pageWithoutUpdated),
+        description:
+          page.pluginCreatorId === `Plugin default-site-plugin`
+            ? `Your site's "gatsby-node.js"`
+            : page.pluginCreatorId,
+      },
+    })
+  }
 }
 
 // Listen for DELETE_PAGE and delete page nodes.

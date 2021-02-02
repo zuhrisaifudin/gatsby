@@ -20,6 +20,7 @@ export async function createPages({
     parentSpan,
   })
   activity.start()
+
   const timestamp = Date.now()
   const currentPages = new Map<string, IGatsbyPage>(store.getState().pages)
   await apiRunnerNode(
