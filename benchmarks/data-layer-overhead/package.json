@@ -1,0 +1,18 @@
+{
+  "name": "data-layer-overhead",
+  "description": "Gatsby benchmark site w/ minimal usage of data layer to see what overhead internal systems add.",
+  "license": "MIT",
+  "scripts": {
+    "bench": "set -x; gatsby clean; NUM_NODES=${NUM_NODES:-2000} gatsby build",
+    "develop": "gatsby develop",
+    "build": "gatsby build",
+    "serve": "gatsby serve"
+  },
+  "dependencies": {
+    "gatsby": "^2.33.0-blazing-fast.4",
+    "inspector-api": "^1.2.1",
+    "memoizee": "^0.4.15",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0"
+  }
+}
