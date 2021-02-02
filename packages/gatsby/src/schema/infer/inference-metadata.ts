@@ -128,37 +128,151 @@ export interface ITypeMetadata {
 
 type Operation = "add" | "del"
 
-const getType = (value: unknown, key: string): ValueType | "null" => {
+const inferCounts = new Map()
+
+const setAndReturnFieldType = (
+  fieldType,
+  typeKeyKey,
+  countsObject,
+  inferCounts
+) => {
+  countsObject.count += 1
+  // We haven't seen this field before so set it
+  if (countsObject.fieldType === null && countsObject.fieldType !== fieldType) {
+    countsObject.fieldType = fieldType
+    // We have seen this field but it's different :-(
+  } else if (
+    countsObject.fieldType !== null &&
+    countsObject.fieldType !== fieldType
+  ) {
+    countsObject.allSame = false
+  }
+
+  // Set this and save
+  inferCounts.set(typeKeyKey, countsObject)
+  return fieldType
+}
+const getType = (
+  value: unknown,
+  key: string,
+  nodeType: string
+): ValueType | "null" => {
+  const typeKeyKey = `${nodeType}-${key}`
+  let countsObject = inferCounts.get(typeKeyKey)
+
+  // Inferring values is very expensive. If after 10 times inferring a field
+  // we've gotten the same value each time, we start just returning the
+  // previously inferred values.
+  if (countsObject?.count > 10 && countsObject.allSame) {
+    countsObject.count += 1
+    inferCounts.set(typeKeyKey, countsObject)
+    return countsObject.fieldType
+  }
+
+  if (!countsObject) {
+    countsObject = {
+      count: 1,
+      fieldType: null,
+      allSame: true,
+    }
+  }
+
   // Staying as close as possible to GraphQL types
   switch (typeof value) {
     case `number`:
-      return is32BitInteger(value) ? `int` : `float`
+      return setAndReturnFieldType(
+        is32BitInteger(value) ? `int` : `float`,
+        typeKeyKey,
+        countsObject,
+        inferCounts
+      )
+
     case `string`:
+      let fieldType = ``
       if (key.includes(`___NODE`)) {
-        return `relatedNode`
+        fieldType = `relatedNode`
+      } else {
+        fieldType = looksLikeADate(value) ? `date` : `string`
       }
-      return looksLikeADate(value) ? `date` : `string`
+
+      return setAndReturnFieldType(
+        fieldType,
+        typeKeyKey,
+        countsObject,
+        inferCounts
+      )
+
     case `boolean`:
-      return `boolean`
+      return setAndReturnFieldType(
+        `boolean`,
+        typeKeyKey,
+        countsObject,
+        inferCounts
+      )
     case `object`:
-      if (value === null) return `null`
-      if (value instanceof Date) return `date`
-      if (value instanceof String) return `string`
+      if (value === null)
+        return setAndReturnFieldType(
+          `null`,
+          typeKeyKey,
+          countsObject,
+          inferCounts
+        )
+      if (value instanceof Date)
+        return setAndReturnFieldType(
+          `date`,
+          typeKeyKey,
+          countsObject,
+          inferCounts
+        )
+      if (value instanceof String)
+        return setAndReturnFieldType(
+          `string`,
+          typeKeyKey,
+          countsObject,
+          inferCounts
+        )
       if (Array.isArray(value)) {
         if (value.length === 0) {
-          return `null`
+          return setAndReturnFieldType(
+            `null`,
+            typeKeyKey,
+            countsObject,
+            inferCounts
+          )
         }
-        return key.includes(`___NODE`) ? `relatedNodeList` : `array`
+        return setAndReturnFieldType(
+          key.includes(`___NODE`) ? `relatedNodeList` : `array`,
+          typeKeyKey,
+          countsObject,
+          inferCounts
+        )
       }
-      if (!Object.keys(value).length) return `null`
-      return `object`
+      if (!Object.keys(value).length)
+        return setAndReturnFieldType(
+          `null`,
+          typeKeyKey,
+          countsObject,
+          inferCounts
+        )
+      return setAndReturnFieldType(
+        `object`,
+        typeKeyKey,
+        countsObject,
+        inferCounts
+      )
     default:
       // bigint, symbol, function, unknown (host objects in IE were typeof "unknown", for example)
-      return `null`
+      return setAndReturnFieldType(
+        `null`,
+        typeKeyKey,
+        countsObject,
+        inferCounts
+      )
   }
 }
 
 const updateValueDescriptorObject = (
+  nodeType: string,
   value: object,
   typeInfo: ITypeInfoObject,
   nodeId: string,
@@ -180,13 +294,23 @@ const updateValueDescriptorObject = (
       dprops[key] = descriptor
     }
 
-    updateValueDescriptor(nodeId, key, v, operation, descriptor, metadata, path)
+    updateValueDescriptor(
+      nodeId,
+      nodeType,
+      key,
+      v,
+      operation,
+      descriptor,
+      metadata,
+      path
+    )
   })
 
   path.pop()
 }
 
 const updateValueDescriptorArray = (
+  nodeType: string,
   value: Array<unknown>,
   key: string,
   typeInfo: ITypeInfoArray,
@@ -204,6 +328,7 @@ const updateValueDescriptorArray = (
 
     updateValueDescriptor(
       nodeId,
+      nodeType,
       key,
       item,
       operation,
@@ -215,6 +340,7 @@ const updateValueDescriptorArray = (
 }
 
 const updateValueDescriptorRelNodes = (
+  nodeType: string,
   listOfNodeIds: Array<string>,
   delta: number,
   operation: Operation,
@@ -237,6 +363,7 @@ const updateValueDescriptorRelNodes = (
 }
 
 const updateValueDescriptorString = (
+  nodeType: string,
   value: string,
   delta: number,
   typeInfo: ITypeInfoString
@@ -251,6 +378,7 @@ const updateValueDescriptorString = (
 
 const updateValueDescriptor = (
   nodeId: string,
+  nodeType: string,
   key: string,
   value: unknown,
   operation: Operation = `add`,
@@ -264,7 +392,7 @@ const updateValueDescriptor = (
     return
   }
 
-  const typeName = getType(value, key)
+  const typeName = getType(value, key, nodeType)
 
   if (typeName === `null`) {
     return
@@ -299,6 +427,7 @@ const updateValueDescriptor = (
   switch (typeName) {
     case `object`:
       updateValueDescriptorObject(
+        nodeType,
         value as object,
         typeInfo as ITypeInfoObject,
         nodeId,
@@ -309,6 +438,7 @@ const updateValueDescriptor = (
       return
     case `array`:
       updateValueDescriptorArray(
+        nodeType,
         value as Array<unknown>,
         key,
         typeInfo as ITypeInfoArray,
@@ -320,6 +450,7 @@ const updateValueDescriptor = (
       return
     case `relatedNode`:
       updateValueDescriptorRelNodes(
+        nodeType,
         [value as string],
         delta,
         operation,
@@ -338,6 +469,7 @@ const updateValueDescriptor = (
       return
     case `string`:
       updateValueDescriptorString(
+        nodeType,
         value as string,
         delta,
         typeInfo as ITypeInfoString
@@ -445,6 +577,7 @@ const updateTypeMetadata = (
 
     updateValueDescriptor(
       node.id,
+      node.internal.type,
       field,
       node[field],
       operation,
