@@ -170,7 +170,15 @@ module.exports = async function build(program: IBuildArgs): Promise<void> {
     rewriteActivityTimer.end()
   }
 
+  const flushTimer = report.activityTimer(
+    `Writing updated page-data.json files to disk`,
+    {
+      parentSpan: buildSpan,
+    }
+  )
+  flushTimer.start()
   await flushPendingPageDataWrites()
+  flushTimer.end()
   markWebpackStatusAsDone()
 
   if (process.env.GATSBY_EXPERIMENTAL_PAGE_BUILD_ON_DATA_CHANGES) {
