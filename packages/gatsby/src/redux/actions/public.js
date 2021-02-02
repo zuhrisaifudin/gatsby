@@ -619,6 +619,7 @@ const typeOwners = {}
  *   }
  * })
  */
+const typeValidationCounts = new Map()
 const createNode = (
   node: any,
   plugin?: Plugin,
@@ -669,35 +670,49 @@ const createNode = (
 
   trackCli(`CREATE_NODE`, trackParams, { debounce: true })
 
-  const result = Joi.validate(node, nodeSchema)
-  if (result.error) {
-    if (!hasErroredBecauseOfNodeValidation.has(result.error.message)) {
-      const errorObj = {
-        id: `11467`,
-        context: {
-          validationErrorMessage: result.error.message,
-          node,
-        },
-      }
+  let joiValidatesCount = typeValidationCounts.get(node.internal?.type) || 0
 
-      const possiblyCodeFrame = getNonGatsbyCodeFrame()
-      if (possiblyCodeFrame) {
-        errorObj.context.codeFrame = possiblyCodeFrame.codeFrame
-        errorObj.filePath = possiblyCodeFrame.fileName
-        errorObj.location = {
-          start: {
-            line: possiblyCodeFrame.line,
-            column: possiblyCodeFrame.column,
+  // After 250 times validating a type, only validate 1% of nodes.
+  if (joiValidatesCount < 250 || Math.random() < 0.01) {
+    const result = Joi.validate(node, nodeSchema)
+    if (result.error) {
+      if (!hasErroredBecauseOfNodeValidation.has(result.error.message)) {
+        const errorObj = {
+          id: `11467`,
+          context: {
+            validationErrorMessage: result.error.message,
+            node,
           },
         }
+
+        const possiblyCodeFrame = getNonGatsbyCodeFrame()
+        if (possiblyCodeFrame) {
+          errorObj.context.codeFrame = possiblyCodeFrame.codeFrame
+          errorObj.filePath = possiblyCodeFrame.fileName
+          errorObj.location = {
+            start: {
+              line: possiblyCodeFrame.line,
+              column: possiblyCodeFrame.column,
+            },
+          }
+        }
+
+        report.error(errorObj)
+        hasErroredBecauseOfNodeValidation.add(result.error.message)
       }
 
-      report.error(errorObj)
-      hasErroredBecauseOfNodeValidation.add(result.error.message)
+      return { type: `VALIDATION_ERROR`, error: true }
     }
-
-    return { type: `VALIDATION_ERROR`, error: true }
+  } else {
+    // Validate just the required fields.
+    if (node.id && node.internal.contentDigest && node.internal.type) {
+      // we're good
+    } else {
+      return { type: `VALIDATION_ERROR`, error: true }
+    }
   }
+  joiValidatesCount += 1
+  typeValidationCounts.set(node.internal?.type, joiValidatesCount)
 
   // Ensure node isn't directly setting fields.
   if (node.fields) {
