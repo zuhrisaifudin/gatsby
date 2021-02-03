@@ -507,7 +507,7 @@ function apiPluginRunningQueueWorker(arg, cb) {
   runAPIForPlugin(arg, cb)
 }
 
-const apiPluginRunnerQueue = fastq(apiPluginRunningQueueWorker, 200)
+const apiPluginRunnerQueue = fastq(apiPluginRunningQueueWorker, 300)
 
 function enqueueAPIRunForPlugin(arg, cb) {
   apiPluginRunnerQueue.push(arg, cb)
@@ -673,12 +673,6 @@ async function apiRunnerNode({ api, args, pluginSource, activity }, cb) {
   }
 
   apisRunningById.set(apiRunInstance.id, apiRunInstance)
-  if (apisRunningByTraceId.has(apiRunInstance.traceId)) {
-    const currentCount = apisRunningByTraceId.get(apiRunInstance.traceId)
-    apisRunningByTraceId.set(apiRunInstance.traceId, currentCount + 1)
-  } else {
-    apisRunningByTraceId.set(apiRunInstance.traceId, 1)
-  }
 
   let stopQueuedApiRuns = false
   let onAPIRunComplete = null
@@ -756,9 +750,18 @@ async function apiRunnerNode({ api, args, pluginSource, activity }, cb) {
   cb(null, results)
 }
 
-const apiRunQueue = fastq(apiRunnerNode, 100)
+const apiRunQueue = fastq(apiRunnerNode, 200)
 
 function enqueueAPINodeRun(api, args = {}, { pluginSource, activity } = {}) {
+  if (args.traceId) {
+    if (apisRunningByTraceId.has(args.traceId)) {
+      const currentCount = apisRunningByTraceId.get(args.traceId)
+      apisRunningByTraceId.set(args.traceId, currentCount + 1)
+    } else {
+      apisRunningByTraceId.set(args.traceId, 1)
+    }
+  }
+
   return new Promise(resolve =>
     apiRunQueue.push({ api, args, pluginSource, activity }, (_, results) =>
       resolve(results)
