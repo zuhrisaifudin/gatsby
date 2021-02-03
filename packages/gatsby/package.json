@@ -73,6 +73,7 @@
     "express": "^4.17.1",
     "express-graphql": "^0.9.0",
     "fastest-levenshtein": "^1.0.12",
+    "fastseries": "^2.0.0",
     "fastq": "^1.10.0",
     "file-loader": "^1.1.11",
     "find-cache-dir": "^3.3.1",

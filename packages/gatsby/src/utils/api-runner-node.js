@@ -3,6 +3,10 @@ const _ = require(`lodash`)
 const chalk = require(`chalk`)
 const { bindActionCreators: origBindActionCreators } = require(`redux`)
 const memoize = require(`memoizee`)
+const fastq = require(`fastq`)
+const series = require("fastseries")({
+  results: true,
+})
 
 const bindActionCreators = memoize(origBindActionCreators)
 
@@ -498,236 +502,268 @@ const apisRunningById = new Map()
 const apisRunningByTraceId = new Map()
 let waitingForCasacadeToFinish = []
 
-module.exports = async (api, args = {}, { pluginSource, activity } = {}) =>
-  new Promise(resolve => {
-    const { parentSpan, traceId, traceTags, waitForCascadingActions } = args
-    const apiSpanArgs = parentSpan ? { childOf: parentSpan } : {}
-    const apiSpan = tracer.startSpan(`run-api`, apiSpanArgs)
+// Create queue for API runs for plugins
+function apiPluginRunningQueueWorker(arg, cb) {
+  runAPIForPlugin(arg, cb)
+}
 
-    apiSpan.setTag(`api`, api)
-    _.forEach(traceTags, (value, key) => {
-      apiSpan.setTag(key, value)
-    })
+const apiPluginRunnerQueue = fastq(apiPluginRunningQueueWorker, 200)
 
-    const plugins = store.getState().flattenedPlugins
+function enqueueAPIRunForPlugin(arg, cb) {
+  apiPluginRunnerQueue.push(arg, cb)
+}
 
-    // Get the list of plugins that implement this API.
-    // Also: Break infinite loops. Sometimes a plugin will implement an API and
-    // call an action which will trigger the same API being called.
-    // `onCreatePage` is the only example right now. In these cases, we should
-    // avoid calling the originating plugin again.
-    let implementingPlugins = plugins.filter(
-      plugin => plugin.nodeAPIs.includes(api) && plugin.name !== pluginSource
+function runAPIForPlugin(
+  { args, apiSpan, activity, plugin, api, stopQueuedApiRuns },
+  cb
+) {
+  if (stopQueuedApiRuns) {
+    return cb()
+  }
+
+  let gatsbyNode = pluginNodeCache.get(plugin.name)
+  if (!gatsbyNode) {
+    gatsbyNode = require(`${plugin.resolve}/gatsby-node`)
+    pluginNodeCache.set(plugin.name, gatsbyNode)
+  }
+
+  const pluginName =
+    plugin.name === `default-site-plugin` ? `gatsby-node.js` : plugin.name
+
+  // TODO: rethink createNode API to handle this better
+  if (
+    api === `onCreateNode` &&
+    gatsbyNode?.unstable_shouldOnCreateNode && // Don't bail if this api is not exported
+    !gatsbyNode.unstable_shouldOnCreateNode(
+      { node: args.node },
+      plugin.pluginOptions
     )
+  ) {
+    // Do not try to run onCreateNode for this node for this plugin
+    return cb()
+  }
 
-    if (api === `sourceNodes` && args.pluginName) {
-      implementingPlugins = implementingPlugins.filter(
-        plugin => plugin.name === args.pluginName
-      )
-    }
+  runAPI(plugin, api, { ...args, parentSpan: apiSpan }, activity)
+    .then(result => cb(null, result))
+    .catch(err => {
+      decorateEvent(`BUILD_PANIC`, {
+        pluginName: `${plugin.name}@${plugin.version}`,
+      })
 
-    const apiRunInstance = {
-      api,
-      args,
-      pluginSource,
-      resolve,
-      span: apiSpan,
-      startTime: new Date().toJSON(),
-      traceId,
-    }
+      const localReporter = getLocalReporter({ activity, reporter })
 
-    // Generate IDs for api runs. Most IDs we generate from the args
-    // but some API calls can have very large argument objects so we
-    // have special ways of generating IDs for those to avoid stringifying
-    // large objects.
-    let id
-    if (api === `setFieldsOnGraphQLNodeType`) {
-      id = `${api}${apiRunInstance.startTime}${args.type.name}${traceId}`
-    } else if (api === `onCreateNode`) {
-      id = `${api}${apiRunInstance.startTime}${args.node.internal.contentDigest}${traceId}`
-    } else if (api === `preprocessSource`) {
-      id = `${api}${apiRunInstance.startTime}${args.filename}${traceId}`
-    } else if (api === `onCreatePage`) {
-      id = `${api}${apiRunInstance.startTime}${args.page.path}${traceId}`
-    } else {
-      // When tracing is turned on, the `args` object will have a
-      // `parentSpan` field that can be quite large. So we omit it
-      // before calling stringify
-      const argsJson = JSON.stringify(_.omit(args, `parentSpan`))
-      id = `${api}|${apiRunInstance.startTime}|${apiRunInstance.traceId}|${argsJson}`
-    }
-    apiRunInstance.id = id
+      const file = stackTrace
+        .parse(err)
+        .find(file => /gatsby-node/.test(file.fileName))
 
-    if (waitForCascadingActions) {
-      waitingForCasacadeToFinish.push(apiRunInstance)
+      let codeFrame = ``
+      const structuredError = errorParser({ err })
+
+      if (file) {
+        const { fileName, lineNumber: line, columnNumber: column } = file
+
+        try {
+          const code = fs.readFileSync(fileName, { encoding: `utf-8` })
+          codeFrame = codeFrameColumns(
+            code,
+            {
+              start: {
+                line,
+                column,
+              },
+            },
+            {
+              highlightCode: true,
+            }
+          )
+        } catch (_e) {
+          // sometimes stack trace point to not existing file
+          // particularly when file is transpiled and path actually changes
+          // (like pointing to not existing `src` dir or original typescript file)
+        }
+
+        structuredError.location = {
+          start: { line: line, column: column },
+        }
+        structuredError.filePath = fileName
+      }
+
+      structuredError.context = {
+        ...structuredError.context,
+        pluginName,
+        api,
+        codeFrame,
+      }
+
+      localReporter.panicOnBuild(structuredError)
+
+      return cb()
+    })
+}
+
+async function apiRunnerNode({ api, args, pluginSource, activity }, cb) {
+  let outsideResolve
+  const promise = new Promise(resolve => {
+    outsideResolve = resolve
+  })
+  const { parentSpan, traceId, traceTags, waitForCascadingActions } = args
+  const apiSpanArgs = parentSpan ? { childOf: parentSpan } : {}
+  const apiSpan = tracer.startSpan(`run-api`, apiSpanArgs)
+
+  apiSpan.setTag(`api`, api)
+  _.forEach(traceTags, (value, key) => {
+    apiSpan.setTag(key, value)
+  })
+
+  const plugins = store.getState().flattenedPlugins
+
+  // Get the list of plugins that implement this API.
+  // Also: Break infinite loops. Sometimes a plugin will implement an API and
+  // call an action which will trigger the same API being called.
+  // `onCreatePage` is the only example right now. In these cases, we should
+  // avoid calling the originating plugin again.
+  let implementingPlugins = plugins.filter(
+    plugin => plugin.nodeAPIs.includes(api) && plugin.name !== pluginSource
+  )
+
+  if (api === `sourceNodes` && args.pluginName) {
+    implementingPlugins = implementingPlugins.filter(
+      plugin => plugin.name === args.pluginName
+    )
+  }
+
+  const apiRunInstance = {
+    api,
+    args,
+    pluginSource,
+    resolve: outsideResolve,
+    span: apiSpan,
+    startTime: new Date().toJSON(),
+    traceId,
+  }
+
+  // Generate IDs for api runs. Most IDs we generate from the args
+  // but some API calls can have very large argument objects so we
+  // have special ways of generating IDs for those to avoid stringifying
+  // large objects.
+  let id
+  if (api === `setFieldsOnGraphQLNodeType`) {
+    id = `${api}${apiRunInstance.startTime}${args.type.name}${traceId}`
+  } else if (api === `onCreateNode`) {
+    id = `${api}${apiRunInstance.startTime}${args.node.internal.contentDigest}${traceId}`
+  } else if (api === `preprocessSource`) {
+    id = `${api}${apiRunInstance.startTime}${args.filename}${traceId}`
+  } else if (api === `onCreatePage`) {
+    id = `${api}${apiRunInstance.startTime}${args.page.path}${traceId}`
+  } else {
+    // When tracing is turned on, the `args` object will have a
+    // `parentSpan` field that can be quite large. So we omit it
+    // before calling stringify
+    const argsJson = JSON.stringify(_.omit(args, `parentSpan`))
+    id = `${api}|${apiRunInstance.startTime}|${apiRunInstance.traceId}|${argsJson}`
+  }
+  apiRunInstance.id = id
+
+  if (waitForCascadingActions) {
+    waitingForCasacadeToFinish.push(apiRunInstance)
+  }
+
+  if (apisRunningById.size === 0) {
+    emitter.emit(`API_RUNNING_START`)
+  }
+
+  apisRunningById.set(apiRunInstance.id, apiRunInstance)
+  if (apisRunningByTraceId.has(apiRunInstance.traceId)) {
+    const currentCount = apisRunningByTraceId.get(apiRunInstance.traceId)
+    apisRunningByTraceId.set(apiRunInstance.traceId, currentCount + 1)
+  } else {
+    apisRunningByTraceId.set(apiRunInstance.traceId, 1)
+  }
+
+  let stopQueuedApiRuns = false
+  let onAPIRunComplete = null
+  if (api === `onCreatePage`) {
+    const path = args.page.path
+    const actionHandler = action => {
+      if (action.payload.path === path) {
+        stopQueuedApiRuns = true
+      }
     }
+    emitter.on(`DELETE_PAGE`, actionHandler)
+    onAPIRunComplete = () => {
+      emitter.off(`DELETE_PAGE`, actionHandler)
+    }
+  }
+
+  // let apiRunPromiseOptions = {}
+  // let runPromise
+  // if (
+  // api === `sourceNodes` &&
+  // process.env.GATSBY_EXPERIMENTAL_PARALLEL_SOURCING
+  // ) {
+  // runPromise = Promise.map
+  // apiRunPromiseOptions.concurrency = 20
+  // } else {
+  // runPromise = Promise.mapSeries
+  // apiRunPromiseOptions = undefined
+  // }
+
+  const apiRunArguments = implementingPlugins.map(plugin => {
+    return { args, apiSpan, activity, plugin, api, stopQueuedApiRuns }
+  })
+
+  function handleDoneAPIRun(__, results) {
+    if (onAPIRunComplete) {
+      onAPIRunComplete()
+    }
+    // Remove runner instance
+    apisRunningById.delete(apiRunInstance.id)
+    const currentCount = apisRunningByTraceId.get(apiRunInstance.traceId)
+    apisRunningByTraceId.set(apiRunInstance.traceId, currentCount - 1)
 
     if (apisRunningById.size === 0) {
-      emitter.emit(`API_RUNNING_START`)
+      emitter.emit(`API_RUNNING_QUEUE_EMPTY`)
     }
 
-    apisRunningById.set(apiRunInstance.id, apiRunInstance)
-    if (apisRunningByTraceId.has(apiRunInstance.traceId)) {
-      const currentCount = apisRunningByTraceId.get(apiRunInstance.traceId)
-      apisRunningByTraceId.set(apiRunInstance.traceId, currentCount + 1)
-    } else {
-      apisRunningByTraceId.set(apiRunInstance.traceId, 1)
+    // Filter empty results
+    apiRunInstance.results = results.filter(result => !_.isEmpty(result))
+
+    // Filter out empty responses and return if the
+    // api caller isn't waiting for cascading actions to finish.
+    if (!waitForCascadingActions) {
+      apiSpan.finish()
+      outsideResolve(apiRunInstance.results)
     }
 
-    let stopQueuedApiRuns = false
-    let onAPIRunComplete = null
-    if (api === `onCreatePage`) {
-      const path = args.page.path
-      const actionHandler = action => {
-        if (action.payload.path === path) {
-          stopQueuedApiRuns = true
-        }
+    // Check if any of our waiters are done.
+    waitingForCasacadeToFinish = waitingForCasacadeToFinish.filter(instance => {
+      // If none of its trace IDs are running, it's done.
+      const apisByTraceIdCount = apisRunningByTraceId.get(instance.traceId)
+      if (apisByTraceIdCount === 0) {
+        instance.span.finish()
+        instance.resolve(instance.results)
+        return false
+      } else {
+        return true
       }
-      emitter.on(`DELETE_PAGE`, actionHandler)
-      onAPIRunComplete = () => {
-        emitter.off(`DELETE_PAGE`, actionHandler)
-      }
-    }
-
-    let apiRunPromiseOptions = {}
-    let runPromise
-    if (
-      api === `sourceNodes` &&
-      process.env.GATSBY_EXPERIMENTAL_PARALLEL_SOURCING
-    ) {
-      runPromise = Promise.map
-      apiRunPromiseOptions.concurrency = 20
-    } else {
-      runPromise = Promise.mapSeries
-      apiRunPromiseOptions = undefined
-    }
-
-    runPromise(
-      implementingPlugins,
-      plugin => {
-        if (stopQueuedApiRuns) {
-          return null
-        }
-
-        let gatsbyNode = pluginNodeCache.get(plugin.name)
-        if (!gatsbyNode) {
-          gatsbyNode = require(`${plugin.resolve}/gatsby-node`)
-          pluginNodeCache.set(plugin.name, gatsbyNode)
-        }
-
-        const pluginName =
-          plugin.name === `default-site-plugin` ? `gatsby-node.js` : plugin.name
-
-        // TODO: rethink createNode API to handle this better
-        if (
-          api === `onCreateNode` &&
-          gatsbyNode?.unstable_shouldOnCreateNode && // Don't bail if this api is not exported
-          !gatsbyNode.unstable_shouldOnCreateNode(
-            { node: args.node },
-            plugin.pluginOptions
-          )
-        ) {
-          // Do not try to schedule an async event for this node for this plugin
-          return null
-        }
-
-        return new Promise(resolve => {
-          resolve(
-            runAPI(plugin, api, { ...args, parentSpan: apiSpan }, activity)
-          )
-        }).catch(err => {
-          decorateEvent(`BUILD_PANIC`, {
-            pluginName: `${plugin.name}@${plugin.version}`,
-          })
-
-          const localReporter = getLocalReporter({ activity, reporter })
-
-          const file = stackTrace
-            .parse(err)
-            .find(file => /gatsby-node/.test(file.fileName))
-
-          let codeFrame = ``
-          const structuredError = errorParser({ err })
-
-          if (file) {
-            const { fileName, lineNumber: line, columnNumber: column } = file
-
-            try {
-              const code = fs.readFileSync(fileName, { encoding: `utf-8` })
-              codeFrame = codeFrameColumns(
-                code,
-                {
-                  start: {
-                    line,
-                    column,
-                  },
-                },
-                {
-                  highlightCode: true,
-                }
-              )
-            } catch (_e) {
-              // sometimes stack trace point to not existing file
-              // particularly when file is transpiled and path actually changes
-              // (like pointing to not existing `src` dir or original typescript file)
-            }
-
-            structuredError.location = {
-              start: { line: line, column: column },
-            }
-            structuredError.filePath = fileName
-          }
-
-          structuredError.context = {
-            ...structuredError.context,
-            pluginName,
-            api,
-            codeFrame,
-          }
-
-          localReporter.panicOnBuild(structuredError)
-
-          return null
-        })
-      },
-      apiRunPromiseOptions
-    ).then(results => {
-      if (onAPIRunComplete) {
-        onAPIRunComplete()
-      }
-      // Remove runner instance
-      apisRunningById.delete(apiRunInstance.id)
-      const currentCount = apisRunningByTraceId.get(apiRunInstance.traceId)
-      apisRunningByTraceId.set(apiRunInstance.traceId, currentCount - 1)
-
-      if (apisRunningById.size === 0) {
-        emitter.emit(`API_RUNNING_QUEUE_EMPTY`)
-      }
-
-      // Filter empty results
-      apiRunInstance.results = results.filter(result => !_.isEmpty(result))
-
-      // Filter out empty responses and return if the
-      // api caller isn't waiting for cascading actions to finish.
-      if (!waitForCascadingActions) {
-        apiSpan.finish()
-        resolve(apiRunInstance.results)
-      }
-
-      // Check if any of our waiters are done.
-      waitingForCasacadeToFinish = waitingForCasacadeToFinish.filter(
-        instance => {
-          // If none of its trace IDs are running, it's done.
-          const apisByTraceIdCount = apisRunningByTraceId.get(instance.traceId)
-          if (apisByTraceIdCount === 0) {
-            instance.span.finish()
-            instance.resolve(instance.results)
-            return false
-          } else {
-            return true
-          }
-        }
-      )
-      return
     })
-  })
+    return
+  }
+
+  series({}, enqueueAPIRunForPlugin, apiRunArguments, handleDoneAPIRun)
+
+  const results = await promise
+  cb(null, results)
+}
+
+const apiRunQueue = fastq(apiRunnerNode, 100)
+
+function enqueueAPINodeRun(api, args = {}, { pluginSource, activity } = {}) {
+  return new Promise(resolve =>
+    apiRunQueue.push({ api, args, pluginSource, activity }, (_, results) =>
+      resolve(results)
+    )
+  )
+}
+
+module.exports = enqueueAPINodeRun

@@ -22,6 +22,7 @@ export async function sourceNodes({
   })
   activity.start()
   const currentPages = new Map<string, IGatsbyPage>(store.getState().pages)
+
   await sourceNodesAndRemoveStaleNodes({
     parentSpan: activity.span,
     deferNodeMutation,
