@@ -340,7 +340,6 @@ const updateValueDescriptorArray = (
 }
 
 const updateValueDescriptorRelNodes = (
-  nodeType: string,
   listOfNodeIds: Array<string>,
   delta: number,
   operation: Operation,
@@ -363,7 +362,6 @@ const updateValueDescriptorRelNodes = (
 }
 
 const updateValueDescriptorString = (
-  nodeType: string,
   value: string,
   delta: number,
   typeInfo: ITypeInfoString
@@ -450,7 +448,6 @@ const updateValueDescriptor = (
       return
     case `relatedNode`:
       updateValueDescriptorRelNodes(
-        nodeType,
         [value as string],
         delta,
         operation,
@@ -469,7 +466,6 @@ const updateValueDescriptor = (
       return
     case `string`:
       updateValueDescriptorString(
-        nodeType,
         value as string,
         delta,
         typeInfo as ITypeInfoString
