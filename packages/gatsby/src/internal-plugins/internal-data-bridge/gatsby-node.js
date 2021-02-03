@@ -196,8 +196,20 @@ exports.createResolvers = ({ createResolvers }) => {
             return page
           })
 
-          // TODO how do you make this work for both edges & nodes?
-          return { nodes: mappedPages }
+          const edges = mappedPages.map(node => {
+            return {
+              node,
+            }
+          })
+
+          return {
+            totalCount: pages.length,
+            edges,
+            nodes: mappedPages,
+            pagesInfo: {
+              totalCount: pages.length,
+            },
+          }
         },
       },
     }
