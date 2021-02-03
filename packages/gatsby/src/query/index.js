@@ -2,6 +2,7 @@ const _ = require(`lodash`)
 const { store } = require(`../redux`)
 const { hasFlag, FLAG_ERROR_EXTRACTION } = require(`../redux/reducers/queries`)
 const queryQueue = require(`./queue`)
+const fastqQueue = require(`./fastq-page-queries`).default
 
 /**
  * Calculates the set of dirty query IDs (page.paths, or staticQuery.id's).
@@ -93,20 +94,46 @@ const processPageQueries = async (
   // `internal-data-bridge`, but the actual page object is only
   // created during `gatsby develop`.
 
-  const jobs = []
-  queryIds.forEach(id => {
-    const page = state.pages.get(id)
-    if (page) {
-      const job = createPageQueryJob(state, page)
-      jobs.push(job)
+  // const jobs = []
+  return new Promise(async (resolve, reject) => {
+    queryIds.forEach(id => {
+      fastqQueue.push({ id, graphqlRunner, activity }, err => {
+        if (err) {
+          fastqQueue.kill()
+          return reject(err)
+        }
+        if (activity.tick) {
+          activity.tick()
+        }
+      })
+    })
+
+    console.log(`idle`, fastqQueue.idle())
+    if (!fastqQueue.idle()) {
+      await new Promise(resolve2 => {
+        fastqQueue.drain = () => {
+          console.log(`drained`)
+          resolve2()
+        }
+      })
     }
+
+    console.log(`done`)
+    resolve()
   })
 
-  await processQueries(jobs, {
-    activity,
-    graphqlRunner,
-    graphqlTracing,
-  })
+  // const page = state.pages.get(id)
+  // if (page) {
+  // const job = createPageQueryJob(state, page)
+  // jobs.push(job)
+  // }
+  // })
+
+  // await processQueries(jobs, {
+  // activity,
+  // graphqlRunner,
+  // graphqlTracing,
+  // })
 }
 
 const createPageQueryJob = (state, page) => {
