@@ -18,6 +18,9 @@ Object {
     "title": "The world of slash and adventure1",
   },
   "hair": 1,
+  "internal": Object {
+    "type": "TEST",
+  },
   "key-with..unsupported-values": true,
   "name": "The Mad Max",
   "nestedArrays": Array [
@@ -44,6 +47,9 @@ Object {
   ],
   "date": "2006-07-22T22:39:53.000Z",
   "hair": 1,
+  "internal": Object {
+    "type": "TEST",
+  },
   "key-with..unsupported-values": true,
   "name": "The Mad Max",
   "nestedArrays": Array [
@@ -66,6 +72,9 @@ exports[`Get example value for type inference Incremental example value building
 Object {
   "date": "2006-07-22T22:39:53.000Z",
   "hair": 1,
+  "internal": Object {
+    "type": "TEST",
+  },
   "key-with..unsupported-values": true,
   "name": "The Mad Max",
 }
@@ -76,6 +85,9 @@ Array [
   Object {
     "date": "2006-07-22T22:39:53.000Z",
     "hair": 1,
+    "internal": Object {
+      "type": "TEST",
+    },
     "key-with..unsupported-values": true,
     "name": "The Mad Max",
   },
@@ -85,6 +97,9 @@ Array [
     ],
     "date": "2006-07-22T22:39:53.000Z",
     "hair": 1,
+    "internal": Object {
+      "type": "TEST",
+    },
     "key-with..unsupported-values": true,
     "name": "The Mad Max",
     "nestedArrays": Array [
@@ -118,6 +133,9 @@ Array [
       "title": "The world of slash and adventure1",
     },
     "hair": 1,
+    "internal": Object {
+      "type": "TEST",
+    },
     "key-with..unsupported-values": true,
     "name": "The Mad Max",
     "nestedArrays": Array [
@@ -156,6 +174,9 @@ Array [
       "title": "The world of slash and adventure1",
     },
     "hair": 1,
+    "internal": Object {
+      "type": "TEST",
+    },
     "key-with..unsupported-values": true,
     "name": "The Mad Max",
     "nestedArrays": Array [
@@ -210,6 +231,9 @@ Object {
   "hair": Object {
     "field": "hair",
   },
+  "internal___type": Object {
+    "field": "internal.type",
+  },
   "key_with__unsupported_values": Object {
     "field": "key_with__unsupported_values",
   },
@@ -254,6 +278,9 @@ Object {
     "title": "The world of dash and adventure",
   },
   "hair": 1,
+  "internal": Object {
+    "type": "TEST",
+  },
   "key-with..unsupported-values": true,
   "name": "The Mad Max",
   "nestedArrays": Array [

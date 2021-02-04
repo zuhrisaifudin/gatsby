@@ -371,6 +371,9 @@ describe(`Get example value for type inference`, () => {
           "key1": 1,
           "key2": "string",
         },
+        "internal": Object {
+          "type": "TEST",
+        },
       }
     `)
   })
@@ -379,9 +382,15 @@ describe(`Get example value for type inference`, () => {
     it(`infers mixed string and object dates as Date`, () => {
       let example = getExampleValueWithoutConflicts({
         nodes: [
-          { date: new Date(`2017-12-01T14:59:45.600Z`) },
-          { date: `2017-01-12T18:13:38.326Z` },
-          { date: `` },
+          {
+            date: new Date(`2017-12-01T14:59:45.600Z`),
+            internal: { type: `stringobject` },
+          },
+          {
+            date: `2017-01-12T18:13:38.326Z`,
+            internal: { type: `stringobject` },
+          },
+          { date: ``, internal: { type: `stringobject` } },
         ],
         typeConflictReporter,
       })
@@ -389,9 +398,15 @@ describe(`Get example value for type inference`, () => {
 
       example = getExampleValueWithoutConflicts({
         nodes: [
-          { date: `2017-01-12T18:13:38.326Z` },
-          { date: new Date(`2017-12-01T14:59:45.600Z`) },
-          { date: `` },
+          {
+            date: `2017-01-12T18:13:38.326Z`,
+            internal: { type: `stringobject2` },
+          },
+          {
+            date: new Date(`2017-12-01T14:59:45.600Z`),
+            internal: { type: `stringobject2` },
+          },
+          { date: ``, internal: { type: `stringobject2` } },
         ],
         typeConflictReporter,
       })
@@ -399,9 +414,15 @@ describe(`Get example value for type inference`, () => {
 
       example = getExampleValueWithoutConflicts({
         nodes: [
-          { date: `` },
-          { date: `2017-01-12T18:13:38.326Z` },
-          { date: new Date(`2017-12-01T14:59:45.600Z`) },
+          { date: ``, internal: { type: `stringobject3` } },
+          {
+            date: `2017-01-12T18:13:38.326Z`,
+            internal: { type: `stringobject3` },
+          },
+          {
+            date: new Date(`2017-12-01T14:59:45.600Z`),
+            internal: { type: `stringobject3` },
+          },
         ],
         typeConflictReporter,
       })
@@ -411,9 +432,15 @@ describe(`Get example value for type inference`, () => {
     it(`infers mixed date objects and non-date strings as string`, () => {
       let example = getExampleValueWithoutConflicts({
         nodes: [
-          { date: new Date(`2017-12-01T14:59:45.600Z`) },
-          { date: `This is not a date!!!!!!` },
-          { date: `` },
+          {
+            date: new Date(`2017-12-01T14:59:45.600Z`),
+            internal: { type: `MixedFields` },
+          },
+          {
+            date: `This is not a date!!!!!!`,
+            internal: { type: `MixedFields` },
+          },
+          { date: ``, internal: { type: `MixedFields` } },
         ],
         typeConflictReporter,
       })
@@ -421,9 +448,12 @@ describe(`Get example value for type inference`, () => {
 
       example = getExampleValueWithoutConflicts({
         nodes: [
-          { date: `This is not a date!!!!!!` },
-          { date: new Date(`2017-12-01T14:59:45.600Z`) },
-          { date: `` },
+          { date: `This is not a date!!!!!!`, internal: { type: `mixed2` } },
+          {
+            date: new Date(`2017-12-01T14:59:45.600Z`),
+            internal: { type: `mixed2` },
+          },
+          { date: ``, internal: { type: `mixed2` } },
         ],
         typeConflictReporter,
       })
@@ -431,9 +461,12 @@ describe(`Get example value for type inference`, () => {
 
       example = getExampleValueWithoutConflicts({
         nodes: [
-          { date: `` },
-          { date: `This is not a date!!!!!!` },
-          { date: new Date(`2017-12-01T14:59:45.600Z`) },
+          { date: ``, internal: { type: `mixed3` } },
+          { date: `This is not a date!!!!!!`, internal: { type: `mixed3` } },
+          {
+            date: new Date(`2017-12-01T14:59:45.600Z`),
+            internal: { type: `mixed3` },
+          },
         ],
         typeConflictReporter,
       })

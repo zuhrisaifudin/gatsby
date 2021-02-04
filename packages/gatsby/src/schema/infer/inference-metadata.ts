@@ -157,13 +157,21 @@ const getType = (
   key: string,
   nodeType: string
 ): ValueType | "null" => {
+  const typeofValue = typeof value
+  if (
+    value === null ||
+    ![`number`, `string`, `boolean`, `object`].includes(typeofValue)
+  ) {
+    return `null`
+  }
+
   const typeKeyKey = `${nodeType}-${key}`
   let countsObject = inferCounts.get(typeKeyKey)
 
-  // Inferring values is very expensive. If after 10 times inferring a field
+  // Inferring values is very expensive. If after 15 times inferring a field
   // we've gotten the same value each time, we start just returning the
   // previously inferred values.
-  if (countsObject?.count > 10 && countsObject.allSame) {
+  if (countsObject?.count > 15 && countsObject.allSame) {
     countsObject.count += 1
     inferCounts.set(typeKeyKey, countsObject)
     return countsObject.fieldType
@@ -178,7 +186,7 @@ const getType = (
   }
 
   // Staying as close as possible to GraphQL types
-  switch (typeof value) {
+  switch (typeofValue) {
     case `number`:
       return setAndReturnFieldType(
         is32BitInteger(value) ? `int` : `float`,
@@ -597,11 +605,26 @@ const disable = (metadata = initialMetadata(), set = true): ITypeMetadata => {
   return metadata
 }
 
-const addNode = (metadata: ITypeMetadata, node: Node): ITypeMetadata =>
-  updateTypeMetadata(metadata, `add`, node)
+const NODE_ENV = process.env.NODE_ENV
+const addNode = (metadata: ITypeMetadata, node: Node): ITypeMetadata => {
+  if (NODE_ENV === `test` && !node.internal?.type) {
+    if (!node.internal) {
+      node.internal = {}
+    }
+    node.internal.type = `TEST`
+  }
+  return updateTypeMetadata(metadata, `add`, node)
+}
 
-const deleteNode = (metadata: ITypeMetadata, node: Node): ITypeMetadata =>
-  updateTypeMetadata(metadata, `del`, node)
+const deleteNode = (metadata: ITypeMetadata, node: Node): ITypeMetadata => {
+  if (NODE_ENV === `test` && !node.internal?.type) {
+    if (!node.internal) {
+      node.internal = {}
+    }
+    node.internal.type = `TEST`
+  }
+  return updateTypeMetadata(metadata, `del`, node)
+}
 const addNodes = (
   metadata = initialMetadata(),
   nodes: Array<Node>

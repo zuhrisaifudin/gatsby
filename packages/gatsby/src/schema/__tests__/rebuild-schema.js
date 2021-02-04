@@ -629,6 +629,8 @@ describe(`build and update individual types`, () => {
       `NestedFieldsAdded`,
       `NestedFieldsAddedFilterInput`,
       `NestedFieldsAddedFilterListInput`,
+      `NestedFieldsAddedNested`,
+      `NestedFieldsAddedNestedFilterInput`,
     ]
 
     expect(types).toEqual(initialTypes.concat(expectedNewTypes).sort())
@@ -641,7 +643,7 @@ describe(`build and update individual types`, () => {
     `)
     expect(print(`NestedFieldsAdded`)).toMatchInlineSnapshot(`
       "type NestedFieldsAdded {
-        nested: String
+        nested: NestedFieldsAddedNested
         int: Int
         bool: Boolean
       }"
@@ -658,7 +660,7 @@ describe(`build and update individual types`, () => {
     `)
     expect(print(`NestedFieldsAddedFilterInput`)).toMatchInlineSnapshot(`
       "input NestedFieldsAddedFilterInput {
-        nested: StringQueryOperatorInput
+        nested: NestedFieldsAddedNestedFilterInput
         int: IntQueryOperatorInput
         bool: BooleanQueryOperatorInput
       }"
@@ -792,7 +794,7 @@ describe(`build and update individual types`, () => {
     const conflictingNode = () => {
       return {
         id: `Foo2`,
-        internal: { type: `Foo`, contentDigest: `0` },
+        internal: { type: `MightHaveConflict`, contentDigest: `0` },
         children: [],
         numberKey: `string`,
         dateKey: { nowItsObject: true },
@@ -800,16 +802,25 @@ describe(`build and update individual types`, () => {
     }
 
     it(`should remove conflicting fields and report about conflict`, async () => {
+      const node = {
+        id: `Foo1`,
+        internal: { type: `MightHaveConflict`, contentDigest: `0` },
+        children: [],
+        test: `test`,
+        dateKey: `2018-05-05`,
+      }
+      await addNodeAndRebuild(node)
       const newSchema = await addNodeAndRebuild(conflictingNode())
       const print = typePrinter(newSchema)
 
-      expect(print(`Foo`)).toMatchInlineSnapshot(`
-        "type Foo implements Node {
+      expect(print(`MightHaveConflict`)).toMatchInlineSnapshot(`
+        "type MightHaveConflict implements Node {
           id: ID!
           parent: Node
           children: [Node!]!
           internal: Internal!
-          stringKey: String
+          test: String
+          numberKey: String
         }"
       `)
 

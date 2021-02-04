@@ -1345,14 +1345,7 @@ exports[`build and update individual types conflict reporting should remove conf
 [MockFunction] {
   "calls": Array [
     Array [
-      "Foo.numberKey:
- - type: number
-   value: [33m1[39m
- - type: string
-   value: [32m'string'[39m",
-    ],
-    Array [
-      "Foo.dateKey:
+      "MightHaveConflict.dateKey:
  - type: date
    value: [32m'2018-05-05'[39m
  - type: object
@@ -1360,10 +1353,6 @@ exports[`build and update individual types conflict reporting should remove conf
     ],
   ],
   "results": Array [
-    Object {
-      "type": "return",
-      "value": undefined,
-    },
     Object {
       "type": "return",
       "value": undefined,
