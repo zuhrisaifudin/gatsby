@@ -2,7 +2,9 @@
 title: Adding Forms
 ---
 
-Gatsby is built on top of React. So anything that is possible with a React form is possible in Gatsby. Additional details about how to create React forms can be found in the [React forms documentation](https://reactjs.org/docs/forms.html) (which happens to be built with Gatsby!)
+Gatsby is built on top of React. So anything that is possible with a React form is possible in Gatsby. 
+
+## Basic form creation in React
 
 Start with the following page.
 
@@ -25,6 +27,8 @@ export default class IndexPage extends React.Component {
   }
 }
 ```
+
+### Adding state and input fields
 
 Now that you have created a class component, you can add `state` to the component.
 
@@ -71,6 +75,8 @@ export default class IndexPage extends React.Component {
   }
 }
 ```
+
+### Updating state
 
 When a user types into an input box, the state should update. Add an `onChange` prop to update state and add a `value` prop to keep the input up to date with the new state:
 
@@ -120,6 +126,8 @@ export default class IndexPage extends React.Component {
   }
 }
 ```
+
+### Handling form submission
 
 Now that your inputs are working, you want something to happen when you submit the form. Add `onSubmit` props to the form element and add `handleSubmit` to show an alert when the user submits the form:
 
@@ -175,6 +183,12 @@ export default class IndexPage extends React.Component {
 }
 ```
 
-This form isn't doing anything besides showing the user information that they just entered. At this point, you may want to move this form to a component, send the form state to a backend server, or add robust validation. You can also use fantastic React form libraries like [Formik](https://github.com/jaredpalmer/formik) or [Final Form](https://github.com/final-form/react-final-form) to speed up your development process.
+### Further enhancements
+
+Right now, this form isn't doing anything besides showing the user information that they just entered. At this point, you may want to move this form to a component, send the form state to a backend server, or add robust validation. 
+
+Additional details about how to create React forms can be found in the [React forms documentation](https://reactjs.org/docs/forms.html) (which happens to be built with Gatsby!)
+
+You can also use fantastic React form libraries like [Formik](https://github.com/jaredpalmer/formik) or [Final Form](https://github.com/final-form/react-final-form) to speed up your development process.
 
 All of this is possible and more by leveraging the power of Gatsby and the React ecosystem!
