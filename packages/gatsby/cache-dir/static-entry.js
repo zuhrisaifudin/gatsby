@@ -1,5 +1,5 @@
 const React = require(`react`)
-const fs = require(`fs`)
+const fs = require(`fs-extra`)
 const { join } = require(`path`)
 const { renderToString, renderToStaticMarkup } = require(`react-dom/server`)
 const { ServerLocation, Router, isRedirect } = require(`@reach/router`)
@@ -123,10 +123,10 @@ const getPageDataUrl = pagePath => {
 const getStaticQueryUrl = hash =>
   `${__PATH_PREFIX__}/page-data/sq/d/${hash}.json`
 
-const getPageData = pagePath => {
+const getPageData = async pagePath => {
   const pageDataPath = getPageDataPath(pagePath)
   const absolutePageDataPath = join(process.cwd(), `public`, pageDataPath)
-  const pageDataRaw = fs.readFileSync(absolutePageDataPath)
+  const pageDataRaw = await fs.readFile(absolutePageDataPath)
 
   try {
     return JSON.parse(pageDataRaw.toString())
@@ -195,7 +195,7 @@ const ensureArray = components => {
   }
 }
 
-export default (pagePath, callback) => {
+export default async (pagePath, callback) => {
   let bodyHtml = ``
   let headComponents = [
     <meta
@@ -258,7 +258,7 @@ export default (pagePath, callback) => {
     postBodyComponents = sanitizeComponents(components)
   }
 
-  const pageData = getPageData(pagePath)
+  const pageData = await getPageData(pagePath)
   const pageDataUrl = getPageDataUrl(pagePath)
 
   const appDataUrl = getAppDataUrl()
