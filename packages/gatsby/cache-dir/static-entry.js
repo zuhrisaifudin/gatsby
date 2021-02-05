@@ -52,6 +52,64 @@ try {
 
 Html = Html && Html.__esModule ? Html.default : Html
 
+const assetNamesCache = new Map()
+const getScriptsAndStyles = componentChunkName => {
+  if (assetNamesCache.has(componentChunkName)) {
+    return assetNamesCache.get(componentChunkName)
+  }
+
+  // Create paths to scripts
+  let scriptsAndStyles = flatten(
+    [`app`, componentChunkName].map(s => {
+      const fetchKey = `assetsByChunkName[${s}]`
+
+      let chunks = get(stats, fetchKey)
+      const namedChunkGroups = get(stats, `namedChunkGroups`)
+
+      if (!chunks) {
+        return null
+      }
+
+      chunks = chunks.map(chunk => {
+        if (chunk === `/`) {
+          return null
+        }
+        return { rel: `preload`, name: chunk }
+      })
+
+      namedChunkGroups[s].assets.forEach(asset =>
+        chunks.push({ rel: `preload`, name: asset })
+      )
+
+      const childAssets = namedChunkGroups[s].childAssets
+      for (const rel in childAssets) {
+        chunks = concat(
+          chunks,
+          childAssets[rel].map(chunk => {
+            return { rel, name: chunk }
+          })
+        )
+      }
+
+      return chunks
+    })
+  )
+    .filter(s => isObject(s))
+    .sort((s1, s2) => (s1.rel == `preload` ? -1 : 1)) // given priority to preload
+
+  scriptsAndStyles = uniqBy(scriptsAndStyles, item => item.name)
+
+  const scripts = scriptsAndStyles.filter(
+    script => script.name && script.name.endsWith(`.js`)
+  )
+  const styles = scriptsAndStyles.filter(
+    style => style.name && style.name.endsWith(`.css`)
+  )
+
+  assetNamesCache.set(componentChunkName, [scripts, styles])
+  return assetNamesCache.get(componentChunkName)
+}
+
 const getPageDataPath = path => {
   const fixedPagePath = path === `/` ? `index` : path
   return join(`page-data`, fixedPagePath, `page-data.json`)
@@ -282,53 +340,7 @@ export default (pagePath, callback) => {
     }
   }
 
-  // Create paths to scripts
-  let scriptsAndStyles = flatten(
-    [`app`, componentChunkName].map(s => {
-      const fetchKey = `assetsByChunkName[${s}]`
-
-      let chunks = get(stats, fetchKey)
-      const namedChunkGroups = get(stats, `namedChunkGroups`)
-
-      if (!chunks) {
-        return null
-      }
-
-      chunks = chunks.map(chunk => {
-        if (chunk === `/`) {
-          return null
-        }
-        return { rel: `preload`, name: chunk }
-      })
-
-      namedChunkGroups[s].assets.forEach(asset =>
-        chunks.push({ rel: `preload`, name: asset })
-      )
-
-      const childAssets = namedChunkGroups[s].childAssets
-      for (const rel in childAssets) {
-        chunks = concat(
-          chunks,
-          childAssets[rel].map(chunk => {
-            return { rel, name: chunk }
-          })
-        )
-      }
-
-      return chunks
-    })
-  )
-    .filter(s => isObject(s))
-    .sort((s1, s2) => (s1.rel == `preload` ? -1 : 1)) // given priority to preload
-
-  scriptsAndStyles = uniqBy(scriptsAndStyles, item => item.name)
-
-  const scripts = scriptsAndStyles.filter(
-    script => script.name && script.name.endsWith(`.js`)
-  )
-  const styles = scriptsAndStyles.filter(
-    style => style.name && style.name.endsWith(`.css`)
-  )
+  const [scripts, styles] = getScriptsAndStyles(componentChunkName)
 
   apiRunner(`onRenderBody`, {
     setHeadComponents,
