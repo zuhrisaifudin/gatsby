@@ -8,6 +8,7 @@ import { websocketManager } from "./websocket-manager"
 import { isWebpackStatusPending } from "./webpack-status"
 import { store } from "../redux"
 import { hasFlag, FLAG_DIRTY_NEW_PAGE } from "../redux/reducers/queries"
+import gatsbyfs from "./gatsby-fs"
 
 import { IExecutionResult } from "../query/types"
 
@@ -84,7 +85,7 @@ export async function writePageData(
   )
 
   const outputFilePath = getFilePath(publicDir, pagePath)
-  const result = await fs.readJSON(inputFilePath)
+  const result = JSON.parse(gatsbyfs.readFile(inputFilePath))
   const body = {
     componentChunkName,
     path: pagePath,
@@ -106,6 +107,8 @@ export async function writePageData(
   })
 
   await fs.outputFile(outputFilePath, bodyStr)
+  // TODO this will be even faster if we do the select/insert as part of a transaction
+  // await gatsbyfs.outputFile(outputFilePath, bodyStr, { fireAndForget: true })
   return body
 }
 

@@ -14,6 +14,7 @@ import errorParser from "./error-parser"
 import { GraphQLRunner } from "./graphql-runner"
 import { IExecutionResult, PageContext } from "./types"
 import { pageDataExists } from "../utils/page-data"
+import gatsbyfs from "../utils/gatsby-fs"
 
 const resultHashes = new Map()
 
@@ -178,7 +179,7 @@ export async function queryRunner(
         `json`,
         `${queryJob.id.replace(/\//g, `_`)}.json`
       )
-      await fs.outputFile(resultPath, resultJSON)
+      gatsbyfs.outputFile(resultPath, resultJSON, { fireAndForget: true })
       store.dispatch({
         type: `ADD_PENDING_PAGE_DATA_WRITE`,
         payload: {
