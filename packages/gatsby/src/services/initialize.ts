@@ -629,10 +629,10 @@ export async function initialize({
     payload: _.flattenDeep([extensions, apiResults]),
   })
 
-  const workerPool = WorkerPool.create()
+  // const workerPool = WorkerPool.create()
 
   return {
     store,
-    workerPool,
+    // workerPool,
   }
 }

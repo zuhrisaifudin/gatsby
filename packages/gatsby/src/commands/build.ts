@@ -145,7 +145,7 @@ module.exports = async function build(program: IBuildArgs): Promise<void> {
     buildActivityTimer.end()
   }
 
-  const workerPool = WorkerPool.create()
+  // const workerPool = WorkerPool.create()
 
   const webpackCompilationHash = stats.hash
   if (
@@ -272,8 +272,8 @@ module.exports = async function build(program: IBuildArgs): Promise<void> {
     await doBuildPages(
       pageRenderer,
       pagePaths,
-      buildHTMLActivityProgress,
-      workerPool
+      buildHTMLActivityProgress
+      // workerPool
     )
   } catch (err) {
     let id = `95313` // TODO: verify error IDs exist
@@ -342,7 +342,7 @@ module.exports = async function build(program: IBuildArgs): Promise<void> {
 
   buildSpan.finish()
   await stopTracer()
-  workerPool.end()
+  // workerPool.end()
   buildActivity.end()
 
   if (

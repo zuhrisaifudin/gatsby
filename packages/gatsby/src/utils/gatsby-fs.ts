@@ -3,27 +3,30 @@ const path = require(`path`)
 const Bottleneck = require(`bottleneck`)
 
 // Setup files db
+console.time(`setup db`)
 const db = sqlite(path.join(process.cwd(), `data.db`))
 db.pragma("journal_mode = MEMORY")
 db.pragma("synchronous = OFF")
 db.pragma("locking_mode = EXCLUSIVE")
 db.pragma("temp_store = MEMORY")
 // db.pragma("page_size = 65535");
-const tables = db.prepare(`SELECT * FROM sqlite_master`).get()
-console.log({ tables })
-if (!tables) {
-  db.exec(`CREATE TABLE "files" (
-"path"	TEXT,
-"blob"	BLOB
+// const tables = db.prepare(`SELECT * FROM sqlite_master`).get()
+// console.log({ tables })
+// if (!tables) {
+db.exec(`DROP TABLE IF EXISTS "files"`)
+db.exec(`CREATE TABLE "files" (
+"path" TEXT UNIQUE,
+"blob" BLOB
 );`)
-  db.exec(`CREATE INDEX "path" ON "files" (
+db.exec(`CREATE INDEX "path" ON "files" (
 	"path"
 );`)
-}
+// }
 
 console.log(db)
 const stmt = db.prepare("INSERT INTO files VALUES (:path, :blob)")
 const readstmt = db.prepare(`SELECT * FROM files WHERE path = ?`)
+console.timeEnd(`setup db`)
 
 const batchSize = 200
 const writeBatcher = new Bottleneck.Batcher({

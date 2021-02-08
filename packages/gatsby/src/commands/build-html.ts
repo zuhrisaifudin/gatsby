@@ -2,8 +2,8 @@ import Bluebird from "bluebird"
 import fs from "fs-extra"
 import reporter from "gatsby-cli/lib/reporter"
 import { createErrorFromString } from "gatsby-cli/lib/reporter/errors"
-import { chunk } from "lodash"
 import webpack from "webpack"
+import dagsbyPool from "../utils/worker/child"
 
 import { emitter } from "../redux"
 import webpackConfig from "../utils/webpack.config"
@@ -129,6 +129,7 @@ export const deleteRenderer = async (rendererPath: string): Promise<void> => {
   }
 }
 
+const renderHtmlPath = require.resolve(`../utils/worker/render-html`)
 const renderHTMLQueue = async (
   workerPool: IWorkerPool,
   activity: IActivity,
@@ -143,17 +144,16 @@ const renderHTMLQueue = async (
     [`gatsby_log_level`, process.env.gatsby_log_level],
   ]
 
-  const segments = chunk(pages, 50)
-
-  await Bluebird.map(segments, async pageSegment => {
-    await workerPool.renderHTML({
+  await Bluebird.map(pages, async page => {
+    await dagsbyPool.renderHTML({
       envVars,
       htmlComponentRendererPath,
-      paths: pageSegment,
+      renderHtmlPath,
+      paths: [page],
     })
 
     if (activity && activity.tick) {
-      activity.tick(pageSegment.length)
+      activity.tick(1)
     }
   })
 }
