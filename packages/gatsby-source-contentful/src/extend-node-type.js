@@ -14,14 +14,15 @@ const {
   GraphQLJSON,
   GraphQLList,
 } = require(`gatsby/graphql`)
-const qs = require(`qs`)
+const { fetchRemoteFile } = require(`gatsby-core-utils`)
 const { generateImageData } = require(`gatsby-plugin-image`)
 const {
   getGatsbyImageFieldConfig,
 } = require(`gatsby-plugin-image/graphql-utils`)
-const { stripIndent } = require(`common-tags`)
 
-const cacheImage = require(`./cache-image`)
+const { stripIndent } = require(`common-tags`)
+const qs = require(`qs`)
+
 const downloadWithRetry = require(`./download-with-retry`).default
 const {
   ImageFormatType,
@@ -664,7 +665,7 @@ const fluidNodeType = ({ name, getTracedSVG }) => {
   }
 }
 
-exports.extendNodeType = ({ type, store }) => {
+exports.extendNodeType = ({ type, cache }) => {
   if (type.name !== `ContentfulAsset`) {
     return {}
   }
@@ -674,15 +675,21 @@ exports.extendNodeType = ({ type, store }) => {
 
     const { image, options } = args
     const {
-      file: { contentType },
+      file: { contentType, url: imgUrl, fileName: name },
     } = image
 
     if (contentType.indexOf(`image/`) !== 0) {
       return null
     }
 
-    const absolutePath = await cacheImage(store, image, options)
-    const extension = path.extname(absolutePath)
+    const url = createUrl(imgUrl, options)
+    const extension = path.extname(imgUrl)
+    const absolutePath = await fetchRemoteFile({
+      url,
+      name,
+      cache,
+      ext: extension,
+    })
 
     return traceSVG({
       file: {
@@ -698,7 +705,23 @@ exports.extendNodeType = ({ type, store }) => {
 
   const getDominantColor = async ({ image, options }) => {
     try {
-      const absolutePath = await cacheImage(store, image, options)
+      const {
+        file: { contentType, url: imgUrl, fileName: name },
+      } = image
+
+      if (contentType.indexOf(`image/`) !== 0) {
+        return null
+      }
+
+      const url = createUrl(imgUrl, options)
+      const extension = path.extname(imgUrl)
+
+      const absolutePath = await fetchRemoteFile({
+        url,
+        name,
+        cache,
+        ext: extension,
+      })
 
       const pluginSharp = require(`gatsby-plugin-sharp`)
       if (!(`getDominantColor` in pluginSharp)) {
