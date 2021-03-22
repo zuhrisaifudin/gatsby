@@ -4340,7 +4340,7 @@
   dependencies:
     "@types/lodash" "*"
 
-"@types/lodash@*", "@types/lodash@^4.14.165", "@types/lodash@^4.14.168", "@types/lodash@^4.14.92":
+"@types/lodash@*", "@types/lodash@^4.14.165", "@types/lodash@^4.14.167", "@types/lodash@^4.14.92":
   version "4.14.168"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.168.tgz#fe24632e79b7ade3f132891afff86caa5e5ce008"
   integrity sha512-oVfRvqHV/V6D1yifJbVRU3TMp8OT6o6BG+U9MkwuJ3U8/CsDHvalRpsxBqivn71ztOFZBTfJMvETbqHiaNSj7Q==
@@ -21387,10 +21387,10 @@ remark-cli@^8.0.1:
     remark "^12.0.0"
     unified-args "^8.0.0"
 
-remark-custom-blocks@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/remark-custom-blocks/-/remark-custom-blocks-2.5.0.tgz#57cfb814b2c867fbd45a2e331582a1e402e0c4e5"
-  integrity sha512-FcCd5Boqn4XBXnlIvpy/9jyVTOZRg7unXv8m14FM4EM0qXLeSvxSReRfuoWmFWZwi0+MOf8bqEwJIBut0NYdJw==
+remark-custom-blocks@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/remark-custom-blocks/-/remark-custom-blocks-2.5.1.tgz#15c2067a9fc2afe71809a21a7719b45c12a7acec"
+  integrity sha512-4S4oHsBVvTteNDkqN7ZgdSZPSAwwMsPQkWRbsnj+a522EvU6qp5hQiCW0bBT3NQTl1iChLYe4v7eaqcbpiVfeA==
   dependencies:
     space-separated-tokens "^1.1.5"
 
