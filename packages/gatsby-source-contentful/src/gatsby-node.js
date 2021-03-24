@@ -13,6 +13,9 @@ const { createPluginConfig, maskText } = require(`./plugin-options`)
 const { downloadContentfulAssets } = require(`./download-contentful-assets`)
 
 const conflictFieldPrefix = `contentful`
+let defaultLocale
+let locales
+let space
 
 // restrictedNodeFields from here https://www.gatsbyjs.org/docs/node-interface/
 const restrictedNodeFields = [
@@ -169,12 +172,10 @@ exports.sourceNodes = async (
   pluginOptions
 ) => {
   const { createNode, deleteNode, touchNode, createTypes } = actions
+  console.log(`source-contentful`, 0)
 
   let currentSyncData
   let contentTypeItems
-  let defaultLocale
-  let locales
-  let space
   if (process.env.GATSBY_CONTENTFUL_EXPERIMENTAL_FORCE_CACHE) {
     reporter.info(
       `GATSBY_CONTENTFUL_EXPERIMENTAL_FORCE_CACHE: Storing/loading remote data through \`` +
@@ -182,18 +183,22 @@ exports.sourceNodes = async (
         `\` so Remote changes CAN NOT be detected!`
     )
   }
+  console.log(`source-contentful`, 1)
   const forceCache = await fs.exists(
     process.env.GATSBY_CONTENTFUL_EXPERIMENTAL_FORCE_CACHE
   )
 
+  console.log(`source-contentful`, 2)
   const pluginConfig = createPluginConfig(pluginOptions)
   const sourceId = `${pluginConfig.get(`spaceId`)}-${pluginConfig.get(
     `environment`
   )}`
+  console.log(`source-contentful`, 3)
 
   const CACHE_SYNC_TOKEN = `contentful-sync-token-${sourceId}`
   const CACHE_SYNC_DATA = `contentful-sync-data-${sourceId}`
 
+  console.log(`source-contentful`, 4)
   /*
    * Subsequent calls of Contentfuls sync API return only changed data.
    *
@@ -209,6 +214,7 @@ exports.sourceNodes = async (
     assets: [],
     entries: [],
   }
+  console.log(`source-contentful`, 5)
   const cachedData = await cache.get(CACHE_SYNC_DATA)
 
   if (cachedData) {
@@ -222,6 +228,7 @@ exports.sourceNodes = async (
     }
   )
 
+  console.log(`source-contentful`, 6)
   if (forceCache) {
     // If the cache has data, use it. Otherwise do a remote fetch anyways and prime the cache now.
     // If present, do NOT contact contentful, skip the round trips entirely
@@ -270,6 +277,7 @@ exports.sourceNodes = async (
         `Note: \`GATSBY_CONTENTFUL_OFFLINE\` was set but it either was not \`true\`, we _are_ online, or we are in production mode, so the flag is ignored.`
       )
     }
+    console.log(`source-contentful`, 7)
 
     fetchActivity.start()
     ;({
@@ -284,6 +292,8 @@ exports.sourceNodes = async (
       pluginConfig,
       parentSpan,
     }))
+
+    console.log({ currentSyncData, contentTypeItems, locales, space })
 
     if (process.env.GATSBY_CONTENTFUL_EXPERIMENTAL_FORCE_CACHE) {
       reporter.info(
@@ -379,10 +389,10 @@ exports.sourceNodes = async (
   fetchActivity.end()
 
   const processingActivity = reporter.activityTimer(
-    `Contentful: Process data (${sourceId})`,
-    {
-      parentSpan,
-    }
+    `Contentful: Process data (${sourceId})`
+    // {
+    // parentSpan,
+    // }
   )
   processingActivity.start()
 
@@ -655,6 +665,73 @@ exports.sourceNodes = async (
   }
 
   return
+}
+
+exports.resolveNodeId = async (helpers, pluginOptions) => {
+  const {
+    objectData,
+    actions: { createNode },
+    createNodeId,
+    getNode,
+  } = helpers
+  console.log(`inside gatsby-source-contentful resolveNodeId`)
+  console.log({ objectData, pluginOptions, space, defaultLocale, locales })
+  const nodeId = createNodeId(
+    normalize.makeId({
+      spaceId: space.sys.id,
+      id: objectData.id,
+      type: objectData.type,
+      currentLocale: defaultLocale,
+      defaultLocale,
+    })
+  )
+  const node = getNode(nodeId)
+  console.log({ node, nodeId })
+
+  const client = createClient({
+    space: pluginOptions.spaceId,
+    accessToken: pluginOptions.accessToken,
+    host: pluginOptions.host,
+  })
+
+  const entry = await client.getEntry(objectData.id)
+  console.log({ entry })
+
+  // const entryItemFields = _.mapValues(entryItem.fields, (v, k) => {
+  // const fieldProps = contentTypeItem.fields.find(field => field.id === k)
+
+  // const localizedField = fieldProps.localized ? getField(v) : v[defaultLocale]
+
+  // return localizedField
+  // })
+
+  // await Promise.all(
+  // normalize.createNodesForContentType({
+  // contentTypeItem: entry,
+  // contentTypeItems: [entry],
+  // restrictedNodeFields,
+  // conflictFieldPrefix,
+  // entries: entry,
+  // createNode,
+  // createNodeId,
+  // getNode,
+  // resolvable: new Set(),
+  // foreignReferenceMap: {},
+  // defaultLocale,
+  // locales,
+  // space,
+  // useNameForId: true,
+  // })
+  // )
+  console.time(`sourceNodes`)
+  await exports.sourceNodes(helpers, pluginOptions)
+  console.timeEnd(`sourceNodes`)
+
+  const node2 = getNode(nodeId)
+  console.log(`after`, { node2, nodeId })
+
+  // return "80c4dd74-35bb-55b1-b126-f31419411c17"
+  return node2.id
 }
 
 // Check if there are any ContentfulAsset nodes and if gatsby-image is installed. If so,

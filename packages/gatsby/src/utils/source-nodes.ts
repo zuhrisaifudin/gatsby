@@ -96,6 +96,7 @@ export default async ({
   parentSpan: Span
   deferNodeMutation: boolean
 }): Promise<void> => {
+  console.log(`utils/source-nodes`, 0)
   await apiRunner(`sourceNodes`, {
     traceId: `initial-sourceNodes`,
     waitForCascadingActions: true,
@@ -104,11 +105,15 @@ export default async ({
     webhookBody: webhookBody || {},
     pluginName,
   })
+  console.log(`utils/source-nodes`, 1)
 
   const state = store.getState()
   const nodes = getNodes()
+  console.log(`utils/source-nodes`, 2)
 
   warnForPluginsWithoutNodes(state, nodes)
+  console.log(`utils/source-nodes`, 3)
 
   deleteStaleNodes(state, nodes)
+  console.log(`utils/source-nodes`, 4)
 }

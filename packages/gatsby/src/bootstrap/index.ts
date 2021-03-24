@@ -26,6 +26,7 @@ export async function bootstrap(
   gatsbyNodeGraphQLFunction: Runner
   workerPool: JestWorker
 }> {
+  console.log(0)
   const spanArgs = initialContext.parentSpan
     ? { childOf: initialContext.parentSpan }
     : {}
@@ -42,8 +43,11 @@ export async function bootstrap(
     ...(await initialize(bootstrapContext)),
   }
 
+  console.log(1)
   await customizeSchema(context)
+  console.log(2)
   await sourceNodes(context)
+  console.log(3)
 
   await buildSchema(context)
 

@@ -3,6 +3,7 @@ const stringify = require(`json-stringify-safe`)
 
 const typePrefix = `Contentful`
 const makeTypeName = type => _.upperFirst(_.camelCase(`${typePrefix} ${type}`))
+exports.makeTypeName = makeTypeName
 
 const getLocalizedField = ({ field, locale, localesFallback }) => {
   if (!_.isUndefined(field[locale.code])) {
@@ -35,6 +36,7 @@ exports.getLocalizedField = getLocalizedField
 exports.buildFallbackChain = buildFallbackChain
 
 const makeId = ({ spaceId, id, currentLocale, defaultLocale, type }) => {
+  console.log(`makeId`, { spaceId, id, currentLocale, defaultLocale, type })
   const normalizedType = type.startsWith(`Deleted`)
     ? type.substring(`Deleted`.length)
     : type

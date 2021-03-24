@@ -604,6 +604,7 @@ export async function initialize({
   })
 
   const workerPool = WorkerPool.create()
+  console.log(`initialize`)
 
   return {
     store,

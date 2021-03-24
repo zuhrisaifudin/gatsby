@@ -162,7 +162,7 @@ export const reloadDataMachine = Machine(
   {
     id: `reloadDataMachine`,
     context: {},
-    initial: `customizingSchema`,
+    initial: `sourcingNodes`,
     states: {
       ...loadDataStates,
       ...recreatePagesStates,

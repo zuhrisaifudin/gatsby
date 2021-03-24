@@ -17,21 +17,25 @@ export async function sourceNodes({
 }> {
   assertStore(store)
 
+  console.log(`source-nodes`, 0)
   const activity = reporter.activityTimer(`source and transform nodes`, {
     parentSpan,
   })
   activity.start()
   const currentPages = new Map<string, IGatsbyPage>(store.getState().pages)
+  console.log(`source-nodes`, 1)
   await sourceNodesAndRemoveStaleNodes({
     parentSpan: activity.span,
     deferNodeMutation,
     webhookBody,
     pluginName: webhookSourcePluginName,
   })
+  console.log(`source-nodes`, 2)
 
   reporter.verbose(`Checking for deleted pages`)
 
   const tim = reporter.activityTimer(`Checking for changed pages`)
+  console.log(`source-nodes`, 3)
   tim.start()
 
   const { changedPages, deletedPages } = findChangedPages(

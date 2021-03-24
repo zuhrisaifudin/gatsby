@@ -25,6 +25,8 @@ import * as WorkerPool from "../utils/worker/pool"
 import { developStatic } from "../commands/develop-static"
 import withResolverContext from "../schema/context"
 import { websocketManager, WebsocketManager } from "../utils/websocket-manager"
+import { runPageQueries } from "../services/run-page-queries"
+import { createGraphQLRunner } from "../bootstrap/create-graphql-runner"
 import {
   showExperimentNoticeAfterTimeout,
   CancelExperimentNoticeCallbackOrUndefined,
@@ -276,6 +278,52 @@ module.exports = {
     }
     res.end()
   })
+
+  app.get(`/__preview/:pluginName`, async (req, res) => {
+    console.time(`resolveNodeId`)
+    console.log(req.params, req.query)
+    // Check if there's a plugin by this name & if it has the right exported API
+    // invoke the API
+    // if get response w/ an node id — get its page & return redirect
+    const apiResults = await apiRunnerNode(`resolveNodeId`, {
+      objectData: req.query,
+    })
+    console.log({ apiResults })
+    const nodeId = apiResults[0]
+    console.log(`nodeId`, nodeId)
+    const pagesBynode = store.getState().queries.byNode
+    console.log(pagesBynode)
+
+    const pagePathSet = pagesBynode.get(nodeId)
+    console.log({ pagePathSet })
+    const pagePath = pagePathSet?.values()?.next()?.value
+    console.log({ pagePath })
+    if (pagePath && typeof pagePath === `string`) {
+      // const graphqlRunner = createGraphQLRunner(store, report)
+      // console.log(graphqlRunner)
+      // TODO run page query to update it
+      await runPageQueries({
+        queryIds: { pageQueryIds: [pagePath] },
+        store,
+        program,
+        // graphqlRunner,
+      })
+      console.timeEnd(`resolveNodeId`)
+      res.send({ ...req.params, ...req.query })
+      res.end()
+      // res.redirect(pagePath)
+    } else {
+      console.timeEnd(`resolveNodeId`)
+      res.send(req.params)
+      res.end()
+    }
+  })
+
+  // app.get(`/__preview/`, (req, res) => {
+  // console.log(req.params)
+  // res.send(JSON.stringify(req, null, 4))
+  // res.end()
+  // })
 
   app.get(`/__open-stack-frame-in-editor`, (req, res) => {
     const fileName = path.resolve(process.cwd(), req.query.fileName)
