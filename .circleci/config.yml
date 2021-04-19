@@ -150,7 +150,7 @@ commands:
         default: false
       trigger_pattern:
         type: string
-        default: "packages/*|.circleci/*"
+        default: "packages/*|.circleci/*|scripts/e2e-test.sh"
       test_path:
         type: string
       test_command:
@@ -179,7 +179,7 @@ jobs:
     executor: node
     steps:
       - checkout
-      - run: ./scripts/assert-changed-files.sh "packages/*|(e2e|integration)-tests/*|.circleci/*|yarn.lock"
+      - run: ./scripts/assert-changed-files.sh "packages/*|(e2e|integration)-tests/*|.circleci/*|scripts/e2e-test.sh|yarn.lock"
       - <<: *restore_cache
       - <<: *install_node_modules
       - <<: *check_lockfile
@@ -256,7 +256,7 @@ jobs:
     steps:
       - e2e-test:
           test_path: integration-tests/gatsby-cli
-          trigger_pattern: packages/gatsby-cli/*|packages/gatsby/*|integration-tests/gatsby-cli/*
+          trigger_pattern: packages/gatsby-cli/*|packages/gatsby/*|integration-tests/gatsby-cli/*|scripts/e2e-test.sh
 
   integration_tests_structured_logging:
     executor: node
@@ -482,7 +482,7 @@ jobs:
     steps:
       - checkout
       - run:
-          command: ./scripts/assert-changed-files.sh "packages/*|(e2e|integration)-tests/*|.circleci/*|yarn.lock"
+          command: ./scripts/assert-changed-files.sh "packages/*|(e2e|integration)-tests/*|.circleci/*|scripts/e2e-test.sh|yarn.lock"
           shell: bash.exe
       # Restoring cache takes as long as installing node modules, so skipping
       # - restore_cache:
