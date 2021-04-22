@@ -372,8 +372,8 @@ jobs:
       CYPRESS_RECORD_KEY: 3fb49000-4143-4bd8-9ab4-219389060910
     steps:
       - e2e-test:
-          test_path: e2e-tests/themes/development-runtime
-          test_command: yarn test
+          test_path: e2e-tests/themes
+          test_command: cd development-runtime; yarn test
 
   themes_e2e_tests_production_runtime:
     <<: *e2e-executor
@@ -382,8 +382,8 @@ jobs:
       CYPRESS_RECORD_KEY: e4e7b3b8-e1e7-4a74-a0c9-9ac76585236b
     steps:
       - e2e-test:
-          test_path: e2e-tests/themes/production-runtime
-          test_command: yarn test
+          test_path: e2e-tests/themes
+          test_command: cd production-runtime; yarn test
 
   mdx_e2e_tests:
     <<: *e2e-executor
