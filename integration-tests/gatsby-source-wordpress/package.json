@@ -4,7 +4,7 @@
   "private": true,
   "description": "A simple Gatsby WP site for running integrations tests",
   "scripts": {
-    "run-jest": "jest --config=jest.config.js --runInBand",
+    "run-jest": "jest --runInBand",
     "test": "npm run run-jest && WARM_CACHE=true npm run run-jest"
   },
   "author": "Tyler Barnes <tylerdbarnes@gmail.com>",

@@ -18,6 +18,11 @@ command -v gatsby-dev || (command -v sudo && sudo npm install -g gatsby-dev-cli@
 echo "Copy $SRC_PATH into $TMP_LOCATION to isolate test"
 cp -Rv $SRC_PATH/** $TMP_TEST_LOCATION
 cp -Rv $GATSBY_PATH/scripts/** $TMP_LOCATION/scripts/
+cp $GATSBY_PATH/package.json $TMP_LOCATION/
+cp $GATSBY_PATH/jest-transformer.js $TMP_LOCATION/
+
+cd $TMP_LOCATION/
+yarn
 
 # setting up child integration test link to gatsby packages
 cd "$TMP_TEST_LOCATION"
