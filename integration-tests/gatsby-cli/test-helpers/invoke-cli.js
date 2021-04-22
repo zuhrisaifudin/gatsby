@@ -3,12 +3,7 @@ import { join } from "path"
 import strip from "strip-ansi"
 import { createLogsMatcher } from "./matcher"
 
-const gatsbyBinLocation = join(
-  GLOBAL_GATSBY_CLI_LOCATION,
-  `node_modules`,
-  `.bin`,
-  `gatsby`
-)
+const gatsbyBinLocation = join(`node_modules`, `.bin`, `gatsby`)
 
 // Use as `GatsbyCLI.cwd('execution-folder').invoke('new', 'foo')`
 export const GatsbyCLI = {
