@@ -3,7 +3,8 @@ set -e # bail on errors
 
 SRC_PATH=$1
 CUSTOM_COMMAND="${2:-yarn test}"
-GATSBY_PATH=${CIRCLE_WORKING_DIRECTORY:-../../}
+# Make sure ~ are converted
+eval GATSBY_PATH=$(eval ${CIRCLE_WORKING_DIRECTORY:-../../})
 TMP_LOCATION=$(mktemp -d);
 
 mkdir -p $TMP_LOCATION/$SRC_PATH
