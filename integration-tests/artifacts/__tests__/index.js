@@ -1,5 +1,4 @@
 const { spawn } = require(`child_process`)
-const os = require("os")
 const path = require(`path`)
 const { murmurhash } = require(`babel-plugin-remove-graphql-queries`)
 const { readPageData } = require(`gatsby/dist/utils/page-data`)
