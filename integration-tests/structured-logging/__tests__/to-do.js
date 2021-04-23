@@ -7,6 +7,7 @@ const EventEmitter = require(`events`)
 const fetch = require(`node-fetch`)
 const fs = require(`fs-extra`)
 const path = require(`path`)
+const cpy = require(`cpy`)
 const { first, last } = require(`lodash`)
 // const { groupBy, filter } = require(`lodash`)
 const joi = require(`joi`)
@@ -362,6 +363,12 @@ describe(`develop`, () => {
     })
 
     describe(`code change`, () => {
+      beforeAll(() => {
+        return cpy(["../src/pages/index.js"], "../original-index.js", {
+          overwrite: true,
+        })
+      })
+
       describe(`invalid`, () => {
         beforeAll(async done => {
           clearEvents()
@@ -407,9 +414,9 @@ describe(`develop`, () => {
         beforeAll(async done => {
           clearEvents()
 
-          execSync(
-            `git checkout -- ${require.resolve(`../src/pages/index.js`)}`
-          )
+          await cpy("../original-index.js", "../src/pages/index.js", {
+            overwrite: true,
+          })
 
           eventEmitter.once(`done`, () => {
             done()
