@@ -13,7 +13,7 @@ mkdir -p $TMP_LOCATION/scripts/
 mkdir -p $TMP_TEST_LOCATION
 
 # cypress docker does not support sudo and does not need it, but the default node executor does
-# command -v gatsby-dev || (command -v sudo && sudo npm install -g gatsby-dev-cli@next) || npm install -g gatsby-dev-cli@next
+command -v gatsby-dev || (command -v sudo && sudo npm install -g gatsby-dev-cli@next) || npm install -g gatsby-dev-cli@next
 
 echo "Copy $SRC_PATH into $TMP_LOCATION to isolate test"
 cp -Rv $SRC_PATH/** $TMP_TEST_LOCATION
