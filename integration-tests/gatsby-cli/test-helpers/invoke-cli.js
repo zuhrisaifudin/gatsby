@@ -3,7 +3,13 @@ import { join } from "path"
 import strip from "strip-ansi"
 import { createLogsMatcher } from "./matcher"
 
-const gatsbyBinLocation = join(`node_modules`, `.bin`, `gatsby`)
+const gatsbyBinLocation = join(
+  __dirname,
+  "..",
+  `node_modules`,
+  `gatsby-cli`,
+  `cli.js`
+)
 
 // Use as `GatsbyCLI.cwd('execution-folder').invoke('new', 'foo')`
 export const GatsbyCLI = {
@@ -12,7 +18,7 @@ export const GatsbyCLI = {
       invoke(args) {
         const NODE_ENV = args[0] === `develop` ? `development` : `production`
         try {
-          const results = sync(gatsbyBinLocation, [].concat(args), {
+          const results = sync("node", [gatsbyBinLocation].concat(args), {
             cwd: join(__dirname, `../`, `./${relativeCwd}`),
             env: { NODE_ENV, CI: 1, GATSBY_LOGGER: `ink` },
           })
@@ -31,7 +37,7 @@ export const GatsbyCLI = {
 
       invokeAsync: (args, onExit) => {
         const NODE_ENV = args[0] === `develop` ? `development` : `production`
-        const res = execa(gatsbyBinLocation, [].concat(args), {
+        const res = execa("node", [gatsbyBinLocation].concat(args), {
           cwd: join(__dirname, `../`, `./${relativeCwd}`),
           env: { NODE_ENV, CI: 1, GATSBY_LOGGER: `ink` },
         })

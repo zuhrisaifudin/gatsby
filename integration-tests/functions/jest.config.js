@@ -7,4 +7,7 @@ module.exports = {
     `src/api`,
   ],
   watchPathIgnorePatterns: ["src/api", ".cache"],
+  transform: {
+    "^.+\\.[jt]sx?$": `./jest-transformer.js`,
+  },
 }
