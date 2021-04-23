@@ -21,9 +21,9 @@ cp -Rv $GATSBY_PATH/scripts/** $TMP_LOCATION/scripts/
 
 # setting up child integration test link to gatsby packages
 cd "$TMP_TEST_LOCATION"
-yarn
-# gatsby-dev --set-path-to-repo "$GATSBY_PATH"
-# gatsby-dev --force-install --scan-once  # install _all_ files in gatsby/packages
+
+gatsby-dev --set-path-to-repo "$GATSBY_PATH"
+gatsby-dev --force-install --scan-once  # install _all_ files in gatsby/packages
 if test -f "./node_modules/.bin/gatsby"; then
   chmod +x ./node_modules/.bin/gatsby # this is sometimes necessary to ensure executable
   echo "Gatsby bin chmoded"
