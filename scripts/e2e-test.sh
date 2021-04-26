@@ -16,8 +16,8 @@ mkdir -p $TMP_TEST_LOCATION
 command -v gatsby-dev || (command -v sudo && sudo npm install -g gatsby-dev-cli@next) || npm install -g gatsby-dev-cli@next
 
 echo "Copy $SRC_PATH into $TMP_LOCATION to isolate test"
-cp -Rv $SRC_PATH/** $TMP_TEST_LOCATION
-cp -Rv $GATSBY_PATH/scripts/** $TMP_LOCATION/scripts/
+cp -Rv $SRC_PATH/. $TMP_TEST_LOCATION
+cp -Rv $GATSBY_PATH/scripts/. $TMP_LOCATION/scripts/
 
 # setting up child integration test link to gatsby packages
 cd "$TMP_TEST_LOCATION"
