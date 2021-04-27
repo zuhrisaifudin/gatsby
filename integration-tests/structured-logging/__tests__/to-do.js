@@ -365,7 +365,7 @@ describe(`develop`, () => {
     describe(`code change`, () => {
       beforeAll(() => {
         return cpy(
-          path.join(__diranme, "../src/pages/index.js"),
+          path.join(__dirname, "../src/pages/index.js"),
           path.join(__dirname, "../original-index.js"),
           {
             overwrite: true,
