@@ -364,9 +364,13 @@ describe(`develop`, () => {
 
     describe(`code change`, () => {
       beforeAll(() => {
-        return cpy(["../src/pages/index.js"], "../original-index.js", {
-          overwrite: true,
-        })
+        return cpy(
+          path.join(__diranme, "../src/pages/index.js"),
+          path.join(__dirname, "../original-index.js"),
+          {
+            overwrite: true,
+          }
+        )
       })
 
       describe(`invalid`, () => {
@@ -414,9 +418,13 @@ describe(`develop`, () => {
         beforeAll(async done => {
           clearEvents()
 
-          await cpy("../original-index.js", "../src/pages/index.js", {
-            overwrite: true,
-          })
+          await cpy(
+            path.join(__dirname, "../original-index.js"),
+            path.join(__dirname, "../src/pages/index.js"),
+            {
+              overwrite: true,
+            }
+          )
 
           eventEmitter.once(`done`, () => {
             done()
